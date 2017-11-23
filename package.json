@@ -39,7 +39,9 @@
     "typescript": "^2.5.2"
   },
   "dependencies": {
+    "@types/gl-matrix": "^2.4.0",
     "chai-as-promised": "^7.1.1",
-    "componententitysystem": "^0.1.5"
+    "componententitysystem": "^0.1.5",
+    "gl-matrix": "^2.4.0"
   }
 }
