@@ -4,6 +4,8 @@ export {SpriteMap};
 //     load(url: string):Promise<string>;
 // }
 
+
+// is this class really usefull ?
 class SpriteMap {
     image: HTMLImageElement;
     constructor(){
