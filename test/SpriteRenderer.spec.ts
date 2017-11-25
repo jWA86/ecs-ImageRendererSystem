@@ -235,9 +235,38 @@ describe("imgRenderer", () => {
             refImgPixelColorChecking(bottomLeftCorner, 0, 0, 255, 255);
 
         });
-        // it("should be able to draw multiple images with their own rotation, size, position correctly", () => {
+        it("should be able to draw multiple images with their own rotation, size, position correctly", () => {
+            //components :
+            // 1st comp : right part of the spriteMap rotate by 180 degree, so bleu is up and green is down, drawn at (0, 0)
+            // 2nd comp : left corner (red) for the spriteMap translated to (100, 100)
+        
+            let comp1 = spriteFactory.create(2, true);
+            comp1.spriteMap = spriteMap;
+            comp1.sourcePosition = vec2.fromValues(spriteMap.image.width - 25, 0);
+            comp1.sourceSize = vec2.fromValues(25, spriteMap.image.height);
+            comp1.destPosition = vec2.fromValues(0, 0);
+            comp1.destSize = vec2.fromValues(25, spriteMap.image.height);
+            comp1.rotation = Math.PI; //180 degree 
 
-        // });
+            let comp2 = spriteFactory.create(1, true);
+            comp2.spriteMap = spriteMap;
+            comp2.sourcePosition = vec2.fromValues(0, 0);
+            comp2.sourceSize = vec2.fromValues(25, 25);
+            comp2.destPosition = vec2.fromValues(100, 100);
+            comp2.destSize = vec2.fromValues(25, 25);
+
+            imgRendererSystem.process(spriteFactory, ctx);
+
+            let fistComponentTopPixel = ctx.getImageData(2, 2, 1, 1);
+            expect(refImgPixelColorChecking(fistComponentTopPixel, 0, 0, 255, 255));
+
+            let fistComponentBottomPixel = ctx.getImageData(2, comp1.spriteMap.image.height-2, 1, 1);
+            expect(refImgPixelColorChecking(fistComponentBottomPixel, 0, 255, 0, 255));
+
+            let secondComponentPixel = ctx.getImageData(100+2, 100+2, 1, 1);
+            expect(refImgPixelColorChecking(secondComponentPixel, 255, 0, 0, 255));
+
+        });
     });
 });
 //checking that the pixel is of the given color 

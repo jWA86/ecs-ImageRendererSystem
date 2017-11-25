@@ -12,6 +12,6 @@ class SpriteComponent implements IComponent {
         public sourcePosition: vec2,
         public sourceSize: vec2,
         public destPosition: vec2,
-        public destSize: vec2 = sourceSize,
+        public destSize: vec2,
         public rotation: number = 0) { }
 }
