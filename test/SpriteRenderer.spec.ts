@@ -90,7 +90,7 @@ describe("imgRenderer", () => {
         describe("sprite component", () => {
             it("should contain a reference to the spriteMap image, the source position, and source size", (done) => {
                 let test = function () {
-                    let spComponent = new SpriteComponent(1, true, spriteMap, vec2.fromValues(1, 1), vec2.fromValues(1, 1), vec2.fromValues(1, 1), vec2.fromValues(1, 1));
+                    let spComponent = new SpriteComponent(1, true, spriteMap, vec2.fromValues(1, 1), vec2.fromValues(1, 1), vec2.fromValues(1, 1), vec2.fromValues(1, 1), 0);
                     expect(spComponent.spriteMap).to.be.instanceOf(SpriteMap);
                     expect(spComponent.sourcePosition[0]).to.equal(1);
                     expect(spComponent.sourcePosition[1]).to.equal(1);
@@ -113,105 +113,135 @@ describe("imgRenderer", () => {
 
     describe("SpriteRenderSystem", () => {
         let canvas: HTMLCanvasElement = <HTMLCanvasElement>document.getElementById(canvasId);
-        let ctx:CanvasRenderingContext2D = canvas.getContext("2d");
+        let ctx: CanvasRenderingContext2D = canvas.getContext("2d");
 
         let spriteFactory = new ComponentFactory<SpriteComponent>(5, SpriteComponent, new Image(), vec2.fromValues(0, 0), vec2.fromValues(0, 0), vec2.fromValues(0, 0), vec2.fromValues(0, 0));
 
-        beforeEach(()=>{
+        let imgRendererSystem = new SpriteRenderSystem();
+
+        beforeEach(() => {
             canvas = <HTMLCanvasElement>document.getElementById(canvasId);
             ctx = canvas.getContext("2d");
 
             spriteFactory = new ComponentFactory<SpriteComponent>(5, SpriteComponent, new Image(), vec2.fromValues(0, 0), vec2.fromValues(0, 0), vec2.fromValues(0, 0), vec2.fromValues(0, 0));
+
+            spriteMap.loadImg(imgUrl);
+            let imgRendererSystem = new SpriteRenderSystem();
         });
-        it("should be able to draw a sprite component at a given position", (done) => {
-            
+        it("should be able to draw a sprite component at a given position", () => {
             //drawing at (100, 100)
             let posX = 100;
             let posY = 100;
-            
-            let imgRendererSystem = new SpriteRenderSystem();
 
-            let test = function (spMap: SpriteMap) {
-                let comp = spriteFactory.create(1, true);
-                comp.spriteMap = spMap;
-                comp.sourcePosition = vec2.fromValues(0, 0);
-                comp.sourceSize = vec2.fromValues(spMap.image.width, spMap.image.height);
-                comp.destPosition = vec2.fromValues(posX, posY);
-                comp.destSize = vec2.fromValues(spMap.image.width, spMap.image.height);
+            let comp = spriteFactory.create(1, true);
+            comp.spriteMap = spriteMap;
+            comp.sourcePosition = vec2.fromValues(0, 0);
+            comp.sourceSize = vec2.fromValues(spriteMap.image.width, spriteMap.image.height);
+            comp.destPosition = vec2.fromValues(posX, posY);
+            comp.destSize = vec2.fromValues(spriteMap.image.width, spriteMap.image.height);
 
-                imgRendererSystem.process(spriteFactory, ctx);
+            imgRendererSystem.process(spriteFactory, ctx);
 
-                // corner of the image should start at (poxX, posY)
-                let topLeftCorner = ctx.getImageData(posX, posY, 1, 1);
-                let topRightCorner = ctx.getImageData(spMap.image.width - 2 + posX, posY, 1, 1);
-                let bottomRightCorner = ctx.getImageData(spMap.image.width - 2+posX, spMap.image.height - 2 + posY, 1, 1);
-                let bottomLeftCorner = ctx.getImageData(posX, spMap.image.height - 2 + posY, 1, 1);
-                
-                refImgPixelColorChecking(topLeftCorner, 255, 0, 0, 255);
-                refImgPixelColorChecking(topRightCorner, 255, 0, 0, 255);
-                refImgPixelColorChecking(bottomRightCorner, 255, 0, 0, 255);
-                refImgPixelColorChecking(bottomLeftCorner, 255, 0, 0, 255);
+            // corner of the image should start at (poxX, posY)
+            let topLeftCorner = ctx.getImageData(posX, posY, 1, 1);
+            let topRightCorner = ctx.getImageData(spriteMap.image.width - 2 + posX, posY, 1, 1);
+            let bottomRightCorner = ctx.getImageData(spriteMap.image.width - 2 + posX, spriteMap.image.height - 2 + posY, 1, 1);
+            let bottomLeftCorner = ctx.getImageData(posX, spriteMap.image.height - 2 + posY, 1, 1);
 
-            }
-            spriteMap.loadImg(imgUrl).then((res) => {
-                test(spriteMap);
-                done();
-            }).catch((res) => {
-                done(new Error(res));
-            });
+            refImgPixelColorChecking(topLeftCorner, 255, 0, 0, 255);
+            refImgPixelColorChecking(topRightCorner, 0, 255, 0, 255);
+            refImgPixelColorChecking(bottomRightCorner, 0, 0, 255, 255);
+            refImgPixelColorChecking(bottomLeftCorner, 255, 0, 255, 255);
         });
-        it("should be able to draw part of the image", (done) => {
-            let imgRendererSystem = new SpriteRenderSystem();
+        it("should be able to draw part of the image", () => {
+            let srcPosX = spriteMap.image.width - 25;
+            let srcPosY = 0;
+            let srcWidth = 25;
+            let srcHeight = spriteMap.image.height;
 
-            
-            let test = function(spMap:SpriteMap){
+            let comp = spriteFactory.create(1, true);
+            comp.spriteMap = spriteMap;
+            // draw only the last 25 pixel with of the image
+            comp.sourcePosition = vec2.fromValues(srcPosX, srcPosY);
+            comp.sourceSize = vec2.fromValues(srcWidth, srcHeight);
+            comp.destPosition = vec2.fromValues(0, 0);
+            comp.destSize = vec2.fromValues(srcWidth, srcHeight);
 
-                let srcPosX = spMap.image.width - 25;
-                let srcPosY = 0;
-                let srcWidth = 25;
-                let srcHeight = spMap.image.height;
-                let comp = spriteFactory.create(1, true);
+            imgRendererSystem.process(spriteFactory, ctx);
 
-                comp.spriteMap = spMap;
-                // draw only the last 25 pixel with of the image
-                comp.sourcePosition = vec2.fromValues(srcPosX, srcPosY);
-                comp.sourceSize = vec2.fromValues(srcWidth, srcHeight);
-                comp.destPosition = vec2.fromValues(0, 0);
-                comp.destSize = vec2.fromValues(srcWidth, srcHeight);
+            // should have only top right corner and bottom right corner of the image drawn
+            let topLeftCorner = ctx.getImageData(0, 0, 1, 1);
+            let topRightCorner = ctx.getImageData(spriteMap.image.width - 1, 0, 1, 1);
+            let bottomRightCorner = ctx.getImageData(spriteMap.image.width - 1, spriteMap.image.height - 1, 1, 1);
+            let bottomLeftCorner = ctx.getImageData(0, spriteMap.image.height - 1, 1, 1);
 
-                imgRendererSystem.process(spriteFactory, ctx);
+            refImgPixelColorChecking(topLeftCorner, 0, 255, 0, 255);
+            refImgPixelColorChecking(bottomLeftCorner, 0, 0, 255, 255);
+            //checking that it doesn't draw the rop right and bottom right corner of the image
+            refImgPixelColorChecking(topRightCorner, 0, 0, 0, 0);
+            refImgPixelColorChecking(bottomRightCorner, 0, 0, 0, 0);
+        });
+        it("should be able to draw the image to a given size", () => {
+            let destWidth = spriteMap.image.width * 0.5;
+            let destHeight = spriteMap.image.height * 0.5;
 
-                // should have only top right corner and bottom right corner of the image drawn
-                let topLeftCorner = ctx.getImageData(0, 0, 1, 1);
-                let topRightCorner = ctx.getImageData(spMap.image.width-1, 0, 1, 1);
-                let bottomRightCorner = ctx.getImageData(spMap.image.width-1, spMap.image.height-1, 1, 1);
-                let bottomLeftCorner = ctx.getImageData(0, spMap.image.height-1, 1, 1);
-                
-                refImgPixelColorChecking(topLeftCorner, 255, 0, 0, 255);
-                refImgPixelColorChecking(bottomLeftCorner, 255, 0, 0, 255);
-                //checking that it doesn't draw the rop right and bottom right corner of the image
-                refImgPixelColorChecking(topRightCorner, 0, 0, 0, 0);
-                refImgPixelColorChecking(bottomRightCorner, 0, 0, 0, 0);
-                
-            }
-            spriteMap.loadImg(imgUrl).then((res) => {
-                test(spriteMap);
-                done();
-            }).catch((res) => {
-                done(new Error(res));
-            });
+            let comp = spriteFactory.create(1, true);
+            comp.spriteMap = spriteMap;
+
+            comp.sourcePosition = vec2.fromValues(0, 0);
+            comp.sourceSize = vec2.fromValues(spriteMap.image.width, spriteMap.image.height);
+            comp.destPosition = vec2.fromValues(0, 0);
+            comp.destSize = vec2.fromValues(destWidth, destHeight);
+
+            imgRendererSystem.process(spriteFactory, ctx);
+
+            let topLeftCorner = ctx.getImageData(0, 0, 1, 1);
+            let topRightCorner = ctx.getImageData(destWidth - 1, 0, 1, 1);
+            let bottomRightCorner = ctx.getImageData(destWidth - 1, destHeight - 1, 1, 1);
+            let bottomLeftCorner = ctx.getImageData(0, destHeight - 1, 1, 1);
+
+            refImgPixelColorChecking(topLeftCorner, 255, 0, 0, 255);
+            refImgPixelColorChecking(topRightCorner, 0, 255, 0, 255);
+            refImgPixelColorChecking(bottomRightCorner, 0, 0, 255, 255);
+            refImgPixelColorChecking(bottomLeftCorner, 255, 0, 255, 255);
+        });
+        it("should be able to rotate the image from its center by a given angle (radians) clockwise", () => {
+            let rotation = 90 * Math.PI / 180;
+
+            let comp = spriteFactory.create(1, true);
+            comp.spriteMap = spriteMap;
+
+            comp.sourcePosition = vec2.fromValues(0, 0);
+            comp.sourceSize = vec2.fromValues(spriteMap.image.width, spriteMap.image.height);
+            comp.destPosition = vec2.fromValues(0, 0);
+            comp.destSize = vec2.fromValues(spriteMap.image.width, spriteMap.image.height);
+            comp.rotation = rotation;
+
+            imgRendererSystem.process(spriteFactory, ctx);
+
+            let topLeftCorner = ctx.getImageData(3, 3, 1, 1);
+            let topRightCorner = ctx.getImageData(spriteMap.image.width - 2, 0, 1, 1);
+            let bottomRightCorner = ctx.getImageData(spriteMap.image.width - 2, spriteMap.image.height - 2, 1, 1);
+            let bottomLeftCorner = ctx.getImageData(2, spriteMap.image.height - 2, 1, 1);
+
+            // topleft should be purle
+            // topright should be red
+            // bottomright should green
+            // bottomleft should be blue
+
+            refImgPixelColorChecking(topLeftCorner, 255, 0, 255, 255);
+            refImgPixelColorChecking(topRightCorner, 255, 0, 0, 255);
+            refImgPixelColorChecking(bottomRightCorner, 0, 255, 0, 255);
+            refImgPixelColorChecking(bottomLeftCorner, 0, 0, 255, 255);
 
         });
-        it('should be able to rotate the image by a given angle', () => {
-
-        });
-        // it("should be able to draw the image to a given size", () => {
+        // it("should be able to draw multiple images with their own rotation, size, position correctly", () => {
 
         // });
     });
 });
 //checking that the pixel is of the given color 
-let refImgPixelColorChecking = function (pixel:ImageData, r:number, g:number, b:number, a:number) {
+let refImgPixelColorChecking = function (pixel: ImageData, r: number, g: number, b: number, a: number) {
     expect(pixel.data[0]).to.equal(r);
     expect(pixel.data[1]).to.equal(g);
     expect(pixel.data[2]).to.equal(b);
