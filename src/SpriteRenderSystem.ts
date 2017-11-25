@@ -15,8 +15,9 @@ class SpriteRenderSystem implements ISystem {
         }
     };
     execute(c: SpriteComponent, context: CanvasRenderingContext2D) {
+        
         context.drawImage(
-            c.image,
+            c.spriteMap.image,
             c.sourcePosition[0],
             c.sourcePosition[1],
             c.sourceSize[0],

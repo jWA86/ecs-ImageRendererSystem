@@ -8,7 +8,7 @@ export {SpriteComponent};
 class SpriteComponent implements IComponent {
  
     constructor(public entityId:number, public active:boolean,
-         public image: HTMLImageElement,
+         public spriteMap: SpriteMap,
           public sourcePosition:vec2,
           public sourceSize:vec2, 
           public destPosition:vec2,
