@@ -88,7 +88,7 @@ describe("imgRenderer", () => {
             // });
         });
         describe("sprite component", () => {
-            it("should contain a reference to the spriteMap image, the source position, and source size", (done) => {
+            it("should contain a reference to the spriteMap image, the source position, source size, and z-index", (done) => {
                 let test = function () {
                     let spComponent = new SpriteComponent(1, true, spriteMap, vec2.fromValues(1, 1), vec2.fromValues(1, 1), vec2.fromValues(1, 1), vec2.fromValues(1, 1), 0);
                     expect(spComponent.spriteMap).to.be.instanceOf(SpriteMap);
@@ -100,6 +100,7 @@ describe("imgRenderer", () => {
                     expect(spComponent.destSize[1]).to.equal(1);
                     expect(spComponent.destPosition[0]).to.equal(1);
                     expect(spComponent.destPosition[1]).to.equal(1);
+                    expect(spComponent.zIndex).to.equal(0);
                     done();
                 }
                 spriteMap.loadImg(imgUrl).then((res) => {
@@ -115,7 +116,7 @@ describe("imgRenderer", () => {
         let canvas: HTMLCanvasElement = <HTMLCanvasElement>document.getElementById(canvasId);
         let ctx: CanvasRenderingContext2D = canvas.getContext("2d");
 
-        let spriteFactory = new ComponentFactory<SpriteComponent>(5, SpriteComponent, new Image(), vec2.fromValues(0, 0), vec2.fromValues(0, 0), vec2.fromValues(0, 0), vec2.fromValues(0, 0));
+        let spriteFactory = new ComponentFactory<SpriteComponent>(5, SpriteComponent, new Image(), vec2.fromValues(0, 0), vec2.fromValues(0, 0), vec2.fromValues(0, 0), vec2.fromValues(0, 0), 5);
 
         let imgRendererSystem = new SpriteRenderSystem();
 
@@ -153,6 +154,7 @@ describe("imgRenderer", () => {
             refImgPixelColorChecking(bottomRightCorner, 0, 0, 255, 255);
             refImgPixelColorChecking(bottomLeftCorner, 255, 0, 255, 255);
         });
+
         it("should be able to draw part of the image", () => {
             let srcPosX = spriteMap.image.width - 25;
             let srcPosY = 0;
@@ -226,7 +228,7 @@ describe("imgRenderer", () => {
 
             // topleft should be purle
             // topright should be red
-            // bottomright should green
+            // bottomright should be green
             // bottomleft should be blue
 
             refImgPixelColorChecking(topLeftCorner, 255, 0, 255, 255);
@@ -235,12 +237,12 @@ describe("imgRenderer", () => {
             refImgPixelColorChecking(bottomLeftCorner, 0, 0, 255, 255);
 
         });
-        it("should be able to draw multiple images with their own rotation, size, position correctly", () => {
+        it("should be able to draw multiple images with their own rotation, size, and position correctly", () => {
             //components :
             // 1st comp : right part of the spriteMap rotate by 180 degree, so bleu is up and green is down, drawn at (0, 0)
             // 2nd comp : left corner (red) for the spriteMap translated to (100, 100)
-        
-            let comp1 = spriteFactory.create(2, true);
+
+            let comp1 = spriteFactory.create(1, true);
             comp1.spriteMap = spriteMap;
             comp1.sourcePosition = vec2.fromValues(spriteMap.image.width - 25, 0);
             comp1.sourceSize = vec2.fromValues(25, spriteMap.image.height);
@@ -248,7 +250,7 @@ describe("imgRenderer", () => {
             comp1.destSize = vec2.fromValues(25, spriteMap.image.height);
             comp1.rotation = Math.PI; //180 degree 
 
-            let comp2 = spriteFactory.create(1, true);
+            let comp2 = spriteFactory.create(2, true);
             comp2.spriteMap = spriteMap;
             comp2.sourcePosition = vec2.fromValues(0, 0);
             comp2.sourceSize = vec2.fromValues(25, 25);
@@ -260,12 +262,82 @@ describe("imgRenderer", () => {
             let fistComponentTopPixel = ctx.getImageData(2, 2, 1, 1);
             expect(refImgPixelColorChecking(fistComponentTopPixel, 0, 0, 255, 255));
 
-            let fistComponentBottomPixel = ctx.getImageData(2, comp1.spriteMap.image.height-2, 1, 1);
+            let fistComponentBottomPixel = ctx.getImageData(2, comp1.spriteMap.image.height - 2, 1, 1);
             expect(refImgPixelColorChecking(fistComponentBottomPixel, 0, 255, 0, 255));
 
-            let secondComponentPixel = ctx.getImageData(100+2, 100+2, 1, 1);
+            let secondComponentPixel = ctx.getImageData(100 + 2, 100 + 2, 1, 1);
             expect(refImgPixelColorChecking(secondComponentPixel, 255, 0, 0, 255));
 
+        });
+        it("should be able to return a sorted list of index  ", () => {
+            let c1 = spriteFactory.create(1, true);
+            c1.zIndex = 3;
+            let c2 = spriteFactory.create(2, true);
+            c2.zIndex = 2;
+            let c3 = spriteFactory.create(3, true);
+            c3.zIndex = 1;
+            let c4 = spriteFactory.create(4, true);
+            c4.zIndex = 0;
+            let arrayToSort = [c1, c2, c3, c4];
+            //should give [3, 2, 1, 0]
+            let sortedIndex = imgRendererSystem.sortByZindex(spriteFactory.values, spriteFactory.iterationLength);
+
+            expect(sortedIndex[0].index).to.equal(3);
+            expect(sortedIndex[1].index).to.equal(2);
+            expect(sortedIndex[2].index).to.equal(1);
+            expect(sortedIndex[3].index).to.equal(0);
+        });
+        it("should be able to draw images on top of each other based on the z index", () => {
+            // draw in increasing order
+            // red
+            let comp1 = spriteFactory.create(1, true);
+            comp1.spriteMap = spriteMap;
+            comp1.sourcePosition = vec2.fromValues(0, 0);
+            comp1.sourceSize = vec2.fromValues(25, 25);
+            comp1.destPosition = vec2.fromValues(0, 0);
+            comp1.destSize = vec2.fromValues(25, 25);
+            comp1.zIndex = 0;
+
+            // green
+            let comp2 = spriteFactory.create(2, true);
+            comp2.spriteMap = spriteMap;
+            comp2.sourcePosition = vec2.fromValues(spriteMap.image.width - 25, 0);
+            comp2.sourceSize = vec2.fromValues(25, 25);
+            comp2.destPosition = vec2.fromValues(5, 5);
+            comp2.destSize = vec2.fromValues(25, 25);
+            comp2.zIndex = 3;
+            // blue
+            let comp3 = spriteFactory.create(3, true);
+            comp3.spriteMap = spriteMap;
+            comp3.sourcePosition = vec2.fromValues(spriteMap.image.width - 25, spriteMap.image.height - 25);
+            comp3.sourceSize = vec2.fromValues(25, 25);
+            comp3.destPosition = vec2.fromValues(10, 10);
+            comp3.destSize = vec2.fromValues(25, 25);
+            comp3.zIndex = 1;
+            // purple
+            let comp4 = spriteFactory.create(4, true);
+            comp4.spriteMap = spriteMap;
+            comp4.sourcePosition = vec2.fromValues(0, spriteMap.image.height - 25);
+            comp4.sourceSize = vec2.fromValues(25, 25);
+            comp4.destPosition = vec2.fromValues(15, 15);
+            comp4.destSize = vec2.fromValues(25, 25);
+            comp4.zIndex = 2;
+
+            imgRendererSystem.process(spriteFactory, ctx);
+
+            // should be red
+            let p1 = ctx.getImageData(0, 0, 1, 1);
+            expect(refImgPixelColorChecking(p1, 255, 0, 0, 255));
+            // should be green
+            let p2 = ctx.getImageData(10, 10, 1, 1);
+            expect(refImgPixelColorChecking(p2, 0, 255, 0, 255));
+            // should be green
+            // bottom right corner minus a margin of 2
+            let p3 = ctx.getImageData(25 + 5 - 2, 25 + 5 - 2, 1, 1);
+            expect(refImgPixelColorChecking(p3, 0, 255, 0, 255));
+            // should be purple
+            let p4 = ctx.getImageData(25 + 10 - 2, 25 + 10 - 2, 1, 1);
+            expect(refImgPixelColorChecking(p4, 255, 0, 255, 255));
         });
     });
 });

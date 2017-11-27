@@ -2,23 +2,25 @@ import { ISystem, ComponentFactory, IComponent, IComponentFactory } from "compon
 import { SpriteComponent } from "../src/SpriteComponent";
 
 export { SpriteRenderSystem }
-// draw by order in the pool
 class SpriteRenderSystem implements ISystem {
     constructor() { }
     process(factory: IComponentFactory<SpriteComponent>, context: CanvasRenderingContext2D) {
-        let l = factory.size;
         let f = factory.values;
+        let l = factory.iterationLength;
+        
+        let sortedByZindex = this.sortByZindex(f, l);
+       
         for (let i = 0; i < l; ++i) {
-            if (f[i].active) {
-                this.execute(f[i], context);
+            let comp = f[sortedByZindex[i].index];
+            if (comp.active) {
+                this.execute(comp, context);
             }
         }
-        context.setTransform(1,0,0,1,0,0);
+        context.setTransform(1, 0, 0, 1, 0, 0);
     };
     execute(c: SpriteComponent, context: CanvasRenderingContext2D) {
-        // context.save();
         let imgCenterX = c.destSize[0]/2;
-        let imgCenterY = c.destSize[1]/2 
+        let imgCenterY = c.destSize[1]/2;
         context.setTransform(1, 0, 0, 1, imgCenterX, imgCenterY);
         context.rotate(c.rotation);
         context.drawImage(
@@ -32,6 +34,24 @@ class SpriteRenderSystem implements ISystem {
             c.destSize[0],
             c.destSize[1]);
     };
-};
 
-//other system with special rendering technique ? such as batch ?
+    
+    /** Sort by z-index in ascending order 
+     * 
+     * Return index corresponding to the input array and their z-value 
+     *
+     * Use of insertion sort algorithm as zIndex won't change often from frame to frame
+    */
+    sortByZindex(input: SpriteComponent[], length: number):{index: number, z: number}[]{
+        let layers = [];
+        layers.push({ index: 0, z: input[0].zIndex });
+        for (let i = 1; i < length; ++i) {
+            let tmp = { index:i, z:input[i].zIndex };
+            for(var k=i-1; k>=0 && (layers[k].z>tmp.z);--k) {
+                layers[k+1] = layers[k];
+            }
+            layers[k+1] = tmp;
+        }
+        return layers;
+    }
+};
