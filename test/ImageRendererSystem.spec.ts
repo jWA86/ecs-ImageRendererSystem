@@ -1,8 +1,8 @@
 import "mocha";
 import { expect, assert } from "chai";
-import { SpriteRenderSystem } from "../src/SpriteRenderSystem";
-import { SpriteMap } from "../src/asset";
-import { SpriteComponent } from "../src/SpriteComponent";
+import { ImageRendererSystem } from "../src/ImageRendererSystem";
+import { ImageAtlas } from "../src/asset";
+import { ImageComponent } from "../src/ImageComponent";
 import { IComponent, IComponentFactory, ComponentFactory } from "componententitysystem";
 import { vec2 } from "gl-matrix";
 
@@ -17,10 +17,10 @@ describe("imgRenderer", () => {
     let mockHtml = '<canvas id="canvas" width="800" height="600"></canvas>';
     document.body.innerHTML = mockHtml;
 
-    let spriteMap = new SpriteMap();
+    let imageAtlas = new ImageAtlas();
     beforeEach(() => {
         document.body.innerHTML = "";
-        spriteMap = new SpriteMap();
+        imageAtlas = new ImageAtlas();
         let mockHtml = '<canvas id="canvas" width="800" height="600"></canvas>';
         document.body.innerHTML = mockHtml;
     });
@@ -28,18 +28,18 @@ describe("imgRenderer", () => {
     describe("Image initialisation", () => {
 
         it("should allocate a new Image element at contruction", () => {
-            expect(spriteMap.image).to.be.instanceOf(HTMLImageElement);
+            expect(imageAtlas.image).to.be.instanceOf(HTMLImageElement);
         });
         it("should be able to notify when the image is loaded", (done) => {
-            spriteMap.loadImg(imgUrl).then((res) => {
+            imageAtlas.loadImg(imgUrl).then((res) => {
                 done();
             }).catch((res) => {
-                console.log(spriteMap.image);
+                console.log(imageAtlas.image);
                 done(new Error('failed to load'));
             });
         });
         it("should be able to notify when the image failed to load", (done) => {
-            spriteMap.loadImg("nonExistingUrl.jpg").then((res) => {
+            imageAtlas.loadImg("nonExistingUrl.jpg").then((res) => {
                 done(new Error('should failed to load but succeed'));
             }).catch((res) => {
                 done();
@@ -60,8 +60,8 @@ describe("imgRenderer", () => {
                 expect(data.data[i]).to.be.equal(0);
             }
 
-            spriteMap.loadImg(grey).then((res) => {
-                ctx.drawImage(spriteMap.image, 0, 0);
+            imageAtlas.loadImg(grey).then((res) => {
+                ctx.drawImage(imageAtlas.image, 0, 0);
                 data = ctx.getImageData(0, 0, 10, 10);
                 // if other value than 0 is found then the image is considered drawn
                 for (let i = 0; i < data.data.length; ++i) {
@@ -74,24 +74,24 @@ describe("imgRenderer", () => {
                 done(new Error(res));
             })
         });
-        describe("spriteMap descriptor", () => {
-            // it("should be able to load a spriteMap descriptor from an url", (done) => {
-            //     spriteMap.loadDescriptor(descriptUrl).then((res) => {
-            //         expect(spriteMap.descriptor).to.be.instanceof(Object);
+        describe("ImageAtlas descriptor", () => {
+            // it("should be able to load a ImageAtlas descriptor from an url", (done) => {
+            //     ImageAtlas.loadDescriptor(descriptUrl).then((res) => {
+            //         expect(ImageAtlas.descriptor).to.be.instanceof(Object);
             //         done();
             //     }).catch((res) => {
             //         done("failed to load");
             //     });
             // });
-            // it("should be able to parse and create sprite components from the spriteMap descriptor", () => {
+            // it("should be able to parse and create sprite components from the ImageAtlas descriptor", () => {
             //     expect(false).to.equal(true);        
             // });
         });
         describe("sprite component", () => {
-            it("should contain a reference to the spriteMap image, the source position, source size, and z-index", (done) => {
-                let test = function () {
-                    let spComponent = new SpriteComponent(1, true, spriteMap, vec2.fromValues(1, 1), vec2.fromValues(1, 1), vec2.fromValues(1, 1), vec2.fromValues(1, 1), 0);
-                    expect(spComponent.spriteMap).to.be.instanceOf(SpriteMap);
+            it("should contain a reference to the image, the source position, source size, and z-index", (done) => {
+                let test = function (imgAtlas) {
+                    let spComponent = new ImageComponent(1, true, imgAtlas.image, vec2.fromValues(1, 1), vec2.fromValues(1, 1), vec2.fromValues(1, 1), vec2.fromValues(1, 1), 0);
+                    expect(spComponent.image).to.be.instanceOf(HTMLImageElement);
                     expect(spComponent.sourcePosition[0]).to.equal(1);
                     expect(spComponent.sourcePosition[1]).to.equal(1);
                     expect(spComponent.sourceSize[0]).to.equal(1);
@@ -103,8 +103,8 @@ describe("imgRenderer", () => {
                     expect(spComponent.zIndex).to.equal(0);
                     done();
                 }
-                spriteMap.loadImg(imgUrl).then((res) => {
-                    test();
+                imageAtlas.loadImg(imgUrl).then((res) => {
+                    test(imageAtlas);
                 }).catch((res) => {
                     done(new Error(res));
                 });
@@ -112,22 +112,22 @@ describe("imgRenderer", () => {
         });
     });
 
-    describe("SpriteRenderSystem", () => {
+    describe("ImageRendererSystem", () => {
         let canvas: HTMLCanvasElement = <HTMLCanvasElement>document.getElementById(canvasId);
         let ctx: CanvasRenderingContext2D = canvas.getContext("2d");
 
-        let spriteFactory = new ComponentFactory<SpriteComponent>(5, SpriteComponent, new Image(), vec2.fromValues(0, 0), vec2.fromValues(0, 0), vec2.fromValues(0, 0), vec2.fromValues(0, 0), 5);
+        let spriteFactory = new ComponentFactory<ImageComponent>(5, ImageComponent, new Image(), vec2.fromValues(0, 0), vec2.fromValues(0, 0), vec2.fromValues(0, 0), vec2.fromValues(0, 0), 5);
 
-        let imgRendererSystem = new SpriteRenderSystem();
+        let imgRendererSystem = new ImageRendererSystem();
 
         beforeEach(() => {
             canvas = <HTMLCanvasElement>document.getElementById(canvasId);
             ctx = canvas.getContext("2d");
 
-            spriteFactory = new ComponentFactory<SpriteComponent>(5, SpriteComponent, new Image(), vec2.fromValues(0, 0), vec2.fromValues(0, 0), vec2.fromValues(0, 0), vec2.fromValues(0, 0));
+            spriteFactory = new ComponentFactory<ImageComponent>(5, ImageComponent, new Image(), vec2.fromValues(0, 0), vec2.fromValues(0, 0), vec2.fromValues(0, 0), vec2.fromValues(0, 0));
 
-            spriteMap.loadImg(imgUrl);
-            let imgRendererSystem = new SpriteRenderSystem();
+            imageAtlas.loadImg(imgUrl);
+            let imgRendererSystem = new ImageRendererSystem();
         });
         it("should be able to draw a sprite component at a given position", () => {
             //drawing at (100, 100)
@@ -135,19 +135,19 @@ describe("imgRenderer", () => {
             let posY = 100;
 
             let comp = spriteFactory.create(1, true);
-            comp.spriteMap = spriteMap;
+            comp.image = imageAtlas.image;
             comp.sourcePosition = vec2.fromValues(0, 0);
-            comp.sourceSize = vec2.fromValues(spriteMap.image.width, spriteMap.image.height);
+            comp.sourceSize = vec2.fromValues(imageAtlas.image.width, imageAtlas.image.height);
             comp.destPosition = vec2.fromValues(posX, posY);
-            comp.destSize = vec2.fromValues(spriteMap.image.width, spriteMap.image.height);
+            comp.destSize = vec2.fromValues(imageAtlas.image.width, imageAtlas.image.height);
 
             imgRendererSystem.process(spriteFactory, ctx);
 
             // corner of the image should start at (poxX, posY)
             let topLeftCorner = ctx.getImageData(posX, posY, 1, 1);
-            let topRightCorner = ctx.getImageData(spriteMap.image.width - 2 + posX, posY, 1, 1);
-            let bottomRightCorner = ctx.getImageData(spriteMap.image.width - 2 + posX, spriteMap.image.height - 2 + posY, 1, 1);
-            let bottomLeftCorner = ctx.getImageData(posX, spriteMap.image.height - 2 + posY, 1, 1);
+            let topRightCorner = ctx.getImageData(imageAtlas.image.width - 2 + posX, posY, 1, 1);
+            let bottomRightCorner = ctx.getImageData(imageAtlas.image.width - 2 + posX, imageAtlas.image.height - 2 + posY, 1, 1);
+            let bottomLeftCorner = ctx.getImageData(posX, imageAtlas.image.height - 2 + posY, 1, 1);
 
             refImgPixelColorChecking(topLeftCorner, 255, 0, 0, 255);
             refImgPixelColorChecking(topRightCorner, 0, 255, 0, 255);
@@ -156,13 +156,13 @@ describe("imgRenderer", () => {
         });
 
         it("should be able to draw part of the image", () => {
-            let srcPosX = spriteMap.image.width - 25;
+            let srcPosX = imageAtlas.image.width - 25;
             let srcPosY = 0;
             let srcWidth = 25;
-            let srcHeight = spriteMap.image.height;
+            let srcHeight = imageAtlas.image.height;
 
             let comp = spriteFactory.create(1, true);
-            comp.spriteMap = spriteMap;
+            comp.image = imageAtlas.image;
             // draw only the last 25 pixel with of the image
             comp.sourcePosition = vec2.fromValues(srcPosX, srcPosY);
             comp.sourceSize = vec2.fromValues(srcWidth, srcHeight);
@@ -173,9 +173,9 @@ describe("imgRenderer", () => {
 
             // should have only top right corner and bottom right corner of the image drawn
             let topLeftCorner = ctx.getImageData(0, 0, 1, 1);
-            let topRightCorner = ctx.getImageData(spriteMap.image.width - 1, 0, 1, 1);
-            let bottomRightCorner = ctx.getImageData(spriteMap.image.width - 1, spriteMap.image.height - 1, 1, 1);
-            let bottomLeftCorner = ctx.getImageData(0, spriteMap.image.height - 1, 1, 1);
+            let topRightCorner = ctx.getImageData(imageAtlas.image.width - 1, 0, 1, 1);
+            let bottomRightCorner = ctx.getImageData(imageAtlas.image.width - 1, imageAtlas.image.height - 1, 1, 1);
+            let bottomLeftCorner = ctx.getImageData(0, imageAtlas.image.height - 1, 1, 1);
 
             refImgPixelColorChecking(topLeftCorner, 0, 255, 0, 255);
             refImgPixelColorChecking(bottomLeftCorner, 0, 0, 255, 255);
@@ -184,14 +184,14 @@ describe("imgRenderer", () => {
             refImgPixelColorChecking(bottomRightCorner, 0, 0, 0, 0);
         });
         it("should be able to draw the image to a given size", () => {
-            let destWidth = spriteMap.image.width * 0.5;
-            let destHeight = spriteMap.image.height * 0.5;
+            let destWidth = imageAtlas.image.width * 0.5;
+            let destHeight = imageAtlas.image.height * 0.5;
 
             let comp = spriteFactory.create(1, true);
-            comp.spriteMap = spriteMap;
+            comp.image = imageAtlas.image;
 
             comp.sourcePosition = vec2.fromValues(0, 0);
-            comp.sourceSize = vec2.fromValues(spriteMap.image.width, spriteMap.image.height);
+            comp.sourceSize = vec2.fromValues(imageAtlas.image.width, imageAtlas.image.height);
             comp.destPosition = vec2.fromValues(0, 0);
             comp.destSize = vec2.fromValues(destWidth, destHeight);
 
@@ -211,20 +211,20 @@ describe("imgRenderer", () => {
             let rotation = 90 * Math.PI / 180;
 
             let comp = spriteFactory.create(1, true);
-            comp.spriteMap = spriteMap;
+            comp.image = imageAtlas.image;
 
             comp.sourcePosition = vec2.fromValues(0, 0);
-            comp.sourceSize = vec2.fromValues(spriteMap.image.width, spriteMap.image.height);
+            comp.sourceSize = vec2.fromValues(imageAtlas.image.width, imageAtlas.image.height);
             comp.destPosition = vec2.fromValues(0, 0);
-            comp.destSize = vec2.fromValues(spriteMap.image.width, spriteMap.image.height);
+            comp.destSize = vec2.fromValues(imageAtlas.image.width, imageAtlas.image.height);
             comp.rotation = rotation;
 
             imgRendererSystem.process(spriteFactory, ctx);
 
             let topLeftCorner = ctx.getImageData(3, 3, 1, 1);
-            let topRightCorner = ctx.getImageData(spriteMap.image.width - 2, 0, 1, 1);
-            let bottomRightCorner = ctx.getImageData(spriteMap.image.width - 2, spriteMap.image.height - 2, 1, 1);
-            let bottomLeftCorner = ctx.getImageData(2, spriteMap.image.height - 2, 1, 1);
+            let topRightCorner = ctx.getImageData(imageAtlas.image.width - 2, 0, 1, 1);
+            let bottomRightCorner = ctx.getImageData(imageAtlas.image.width - 2, imageAtlas.image.height - 2, 1, 1);
+            let bottomLeftCorner = ctx.getImageData(2, imageAtlas.image.height - 2, 1, 1);
 
             // topleft should be purle
             // topright should be red
@@ -239,19 +239,19 @@ describe("imgRenderer", () => {
         });
         it("should be able to draw multiple images with their own rotation, size, and position correctly", () => {
             //components :
-            // 1st comp : right part of the spriteMap rotate by 180 degree, so bleu is up and green is down, drawn at (0, 0)
-            // 2nd comp : left corner (red) for the spriteMap translated to (100, 100)
+            // 1st comp : right part of the ImageAtlas rotate by 180 degree, so bleu is up and green is down, drawn at (0, 0)
+            // 2nd comp : left corner (red) for the ImageAtlas translated to (100, 100)
 
             let comp1 = spriteFactory.create(1, true);
-            comp1.spriteMap = spriteMap;
-            comp1.sourcePosition = vec2.fromValues(spriteMap.image.width - 25, 0);
-            comp1.sourceSize = vec2.fromValues(25, spriteMap.image.height);
+            comp1.image = imageAtlas.image;
+            comp1.sourcePosition = vec2.fromValues(imageAtlas.image.width - 25, 0);
+            comp1.sourceSize = vec2.fromValues(25, imageAtlas.image.height);
             comp1.destPosition = vec2.fromValues(0, 0);
-            comp1.destSize = vec2.fromValues(25, spriteMap.image.height);
+            comp1.destSize = vec2.fromValues(25, imageAtlas.image.height);
             comp1.rotation = Math.PI; //180 degree 
 
             let comp2 = spriteFactory.create(2, true);
-            comp2.spriteMap = spriteMap;
+            comp2.image = imageAtlas.image;
             comp2.sourcePosition = vec2.fromValues(0, 0);
             comp2.sourceSize = vec2.fromValues(25, 25);
             comp2.destPosition = vec2.fromValues(100, 100);
@@ -262,7 +262,7 @@ describe("imgRenderer", () => {
             let fistComponentTopPixel = ctx.getImageData(2, 2, 1, 1);
             expect(refImgPixelColorChecking(fistComponentTopPixel, 0, 0, 255, 255));
 
-            let fistComponentBottomPixel = ctx.getImageData(2, comp1.spriteMap.image.height - 2, 1, 1);
+            let fistComponentBottomPixel = ctx.getImageData(2, comp1.image.height - 2, 1, 1);
             expect(refImgPixelColorChecking(fistComponentBottomPixel, 0, 255, 0, 255));
 
             let secondComponentPixel = ctx.getImageData(100 + 2, 100 + 2, 1, 1);
@@ -291,7 +291,7 @@ describe("imgRenderer", () => {
             // draw in increasing order
             // red
             let comp1 = spriteFactory.create(1, true);
-            comp1.spriteMap = spriteMap;
+            comp1.image= imageAtlas.image;
             comp1.sourcePosition = vec2.fromValues(0, 0);
             comp1.sourceSize = vec2.fromValues(25, 25);
             comp1.destPosition = vec2.fromValues(0, 0);
@@ -300,24 +300,24 @@ describe("imgRenderer", () => {
 
             // green
             let comp2 = spriteFactory.create(2, true);
-            comp2.spriteMap = spriteMap;
-            comp2.sourcePosition = vec2.fromValues(spriteMap.image.width - 25, 0);
+            comp2.image = imageAtlas.image;
+            comp2.sourcePosition = vec2.fromValues(imageAtlas.image.width - 25, 0);
             comp2.sourceSize = vec2.fromValues(25, 25);
             comp2.destPosition = vec2.fromValues(5, 5);
             comp2.destSize = vec2.fromValues(25, 25);
             comp2.zIndex = 3;
             // blue
             let comp3 = spriteFactory.create(3, true);
-            comp3.spriteMap = spriteMap;
-            comp3.sourcePosition = vec2.fromValues(spriteMap.image.width - 25, spriteMap.image.height - 25);
+            comp3.image = imageAtlas.image;
+            comp3.sourcePosition = vec2.fromValues(imageAtlas.image.width - 25, imageAtlas.image.height - 25);
             comp3.sourceSize = vec2.fromValues(25, 25);
             comp3.destPosition = vec2.fromValues(10, 10);
             comp3.destSize = vec2.fromValues(25, 25);
             comp3.zIndex = 1;
             // purple
             let comp4 = spriteFactory.create(4, true);
-            comp4.spriteMap = spriteMap;
-            comp4.sourcePosition = vec2.fromValues(0, spriteMap.image.height - 25);
+            comp4.image = imageAtlas.image;
+            comp4.sourcePosition = vec2.fromValues(0, imageAtlas.image.height - 25);
             comp4.sourceSize = vec2.fromValues(25, 25);
             comp4.destPosition = vec2.fromValues(15, 15);
             comp4.destSize = vec2.fromValues(25, 25);

@@ -1,14 +1,14 @@
 import { IComponent } from "componententitysystem";
-import { SpriteMap } from "./asset";
+import { ImageAtlas } from "./asset";
 import { vec2 } from "gl-matrix";
 
 
-export { SpriteComponent };
+export { ImageComponent };
 
-class SpriteComponent implements IComponent {
+class ImageComponent implements IComponent {
 
     constructor(public entityId: number, public active: boolean,
-        public spriteMap: SpriteMap,
+        public image: HTMLImageElement,
         public sourcePosition: vec2,
         public sourceSize: vec2,
         public destPosition: vec2,

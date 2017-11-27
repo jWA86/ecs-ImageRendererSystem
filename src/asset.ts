@@ -1,12 +1,7 @@
-export {SpriteMap};
-
-// interface IAsset {
-//     load(url: string):Promise<string>;
-// }
-
+export {ImageAtlas};
 
 // is this class really usefull ?
-class SpriteMap {
+class ImageAtlas {
     image: HTMLImageElement;
     constructor(){
         this.image = new Image();
@@ -37,4 +32,4 @@ class SpriteMap {
     // }
 }
 
-// Factory de spriteMap ?
+// Factory de ImageAtlas ?
