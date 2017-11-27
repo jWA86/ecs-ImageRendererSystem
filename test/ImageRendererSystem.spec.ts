@@ -83,11 +83,11 @@ describe("imgRenderer", () => {
             //         done("failed to load");
             //     });
             // });
-            // it("should be able to parse and create sprite components from the ImageAtlas descriptor", () => {
+            // it("should be able to parse and create image components from the ImageAtlas descriptor", () => {
             //     expect(false).to.equal(true);        
             // });
         });
-        describe("sprite component", () => {
+        describe("image component", () => {
             it("should contain a reference to the image, the source position, source size, and z-index", (done) => {
                 let test = function (imgAtlas) {
                     let spComponent = new ImageComponent(1, true, imgAtlas.image, vec2.fromValues(1, 1), vec2.fromValues(1, 1), vec2.fromValues(1, 1), vec2.fromValues(1, 1), 0);
@@ -116,7 +116,7 @@ describe("imgRenderer", () => {
         let canvas: HTMLCanvasElement = <HTMLCanvasElement>document.getElementById(canvasId);
         let ctx: CanvasRenderingContext2D = canvas.getContext("2d");
 
-        let spriteFactory = new ComponentFactory<ImageComponent>(5, ImageComponent, new Image(), vec2.fromValues(0, 0), vec2.fromValues(0, 0), vec2.fromValues(0, 0), vec2.fromValues(0, 0), 5);
+        let imgFactory = new ComponentFactory<ImageComponent>(5, ImageComponent, new Image(), vec2.fromValues(0, 0), vec2.fromValues(0, 0), vec2.fromValues(0, 0), vec2.fromValues(0, 0), 5);
 
         let imgRendererSystem = new ImageRendererSystem();
 
@@ -124,24 +124,24 @@ describe("imgRenderer", () => {
             canvas = <HTMLCanvasElement>document.getElementById(canvasId);
             ctx = canvas.getContext("2d");
 
-            spriteFactory = new ComponentFactory<ImageComponent>(5, ImageComponent, new Image(), vec2.fromValues(0, 0), vec2.fromValues(0, 0), vec2.fromValues(0, 0), vec2.fromValues(0, 0));
+            imgFactory = new ComponentFactory<ImageComponent>(5, ImageComponent, new Image(), vec2.fromValues(0, 0), vec2.fromValues(0, 0), vec2.fromValues(0, 0), vec2.fromValues(0, 0));
 
             imageAtlas.loadImg(imgUrl);
             let imgRendererSystem = new ImageRendererSystem();
         });
-        it("should be able to draw a sprite component at a given position", () => {
+        it("should be able to draw a image component at a given position", () => {
             //drawing at (100, 100)
             let posX = 100;
             let posY = 100;
 
-            let comp = spriteFactory.create(1, true);
+            let comp = imgFactory.create(1, true);
             comp.image = imageAtlas.image;
             comp.sourcePosition = vec2.fromValues(0, 0);
             comp.sourceSize = vec2.fromValues(imageAtlas.image.width, imageAtlas.image.height);
             comp.destPosition = vec2.fromValues(posX, posY);
             comp.destSize = vec2.fromValues(imageAtlas.image.width, imageAtlas.image.height);
 
-            imgRendererSystem.process(spriteFactory, ctx);
+            imgRendererSystem.process(imgFactory, ctx);
 
             // corner of the image should start at (poxX, posY)
             let topLeftCorner = ctx.getImageData(posX, posY, 1, 1);
@@ -161,7 +161,7 @@ describe("imgRenderer", () => {
             let srcWidth = 25;
             let srcHeight = imageAtlas.image.height;
 
-            let comp = spriteFactory.create(1, true);
+            let comp = imgFactory.create(1, true);
             comp.image = imageAtlas.image;
             // draw only the last 25 pixel with of the image
             comp.sourcePosition = vec2.fromValues(srcPosX, srcPosY);
@@ -169,7 +169,7 @@ describe("imgRenderer", () => {
             comp.destPosition = vec2.fromValues(0, 0);
             comp.destSize = vec2.fromValues(srcWidth, srcHeight);
 
-            imgRendererSystem.process(spriteFactory, ctx);
+            imgRendererSystem.process(imgFactory, ctx);
 
             // should have only top right corner and bottom right corner of the image drawn
             let topLeftCorner = ctx.getImageData(0, 0, 1, 1);
@@ -187,7 +187,7 @@ describe("imgRenderer", () => {
             let destWidth = imageAtlas.image.width * 0.5;
             let destHeight = imageAtlas.image.height * 0.5;
 
-            let comp = spriteFactory.create(1, true);
+            let comp = imgFactory.create(1, true);
             comp.image = imageAtlas.image;
 
             comp.sourcePosition = vec2.fromValues(0, 0);
@@ -195,7 +195,7 @@ describe("imgRenderer", () => {
             comp.destPosition = vec2.fromValues(0, 0);
             comp.destSize = vec2.fromValues(destWidth, destHeight);
 
-            imgRendererSystem.process(spriteFactory, ctx);
+            imgRendererSystem.process(imgFactory, ctx);
 
             let topLeftCorner = ctx.getImageData(0, 0, 1, 1);
             let topRightCorner = ctx.getImageData(destWidth - 1, 0, 1, 1);
@@ -210,7 +210,7 @@ describe("imgRenderer", () => {
         it("should be able to rotate the image from its center by a given angle (radians) clockwise", () => {
             let rotation = 90 * Math.PI / 180;
 
-            let comp = spriteFactory.create(1, true);
+            let comp = imgFactory.create(1, true);
             comp.image = imageAtlas.image;
 
             comp.sourcePosition = vec2.fromValues(0, 0);
@@ -219,7 +219,7 @@ describe("imgRenderer", () => {
             comp.destSize = vec2.fromValues(imageAtlas.image.width, imageAtlas.image.height);
             comp.rotation = rotation;
 
-            imgRendererSystem.process(spriteFactory, ctx);
+            imgRendererSystem.process(imgFactory, ctx);
 
             let topLeftCorner = ctx.getImageData(3, 3, 1, 1);
             let topRightCorner = ctx.getImageData(imageAtlas.image.width - 2, 0, 1, 1);
@@ -242,7 +242,7 @@ describe("imgRenderer", () => {
             // 1st comp : right part of the ImageAtlas rotate by 180 degree, so bleu is up and green is down, drawn at (0, 0)
             // 2nd comp : left corner (red) for the ImageAtlas translated to (100, 100)
 
-            let comp1 = spriteFactory.create(1, true);
+            let comp1 = imgFactory.create(1, true);
             comp1.image = imageAtlas.image;
             comp1.sourcePosition = vec2.fromValues(imageAtlas.image.width - 25, 0);
             comp1.sourceSize = vec2.fromValues(25, imageAtlas.image.height);
@@ -250,14 +250,14 @@ describe("imgRenderer", () => {
             comp1.destSize = vec2.fromValues(25, imageAtlas.image.height);
             comp1.rotation = Math.PI; //180 degree 
 
-            let comp2 = spriteFactory.create(2, true);
+            let comp2 = imgFactory.create(2, true);
             comp2.image = imageAtlas.image;
             comp2.sourcePosition = vec2.fromValues(0, 0);
             comp2.sourceSize = vec2.fromValues(25, 25);
             comp2.destPosition = vec2.fromValues(100, 100);
             comp2.destSize = vec2.fromValues(25, 25);
 
-            imgRendererSystem.process(spriteFactory, ctx);
+            imgRendererSystem.process(imgFactory, ctx);
 
             let fistComponentTopPixel = ctx.getImageData(2, 2, 1, 1);
             expect(refImgPixelColorChecking(fistComponentTopPixel, 0, 0, 255, 255));
@@ -270,17 +270,17 @@ describe("imgRenderer", () => {
 
         });
         it("should be able to return a sorted list of index  ", () => {
-            let c1 = spriteFactory.create(1, true);
+            let c1 = imgFactory.create(1, true);
             c1.zIndex = 3;
-            let c2 = spriteFactory.create(2, true);
+            let c2 = imgFactory.create(2, true);
             c2.zIndex = 2;
-            let c3 = spriteFactory.create(3, true);
+            let c3 = imgFactory.create(3, true);
             c3.zIndex = 1;
-            let c4 = spriteFactory.create(4, true);
+            let c4 = imgFactory.create(4, true);
             c4.zIndex = 0;
             let arrayToSort = [c1, c2, c3, c4];
             //should give [3, 2, 1, 0]
-            let sortedIndex = imgRendererSystem.sortByZindex(spriteFactory.values, spriteFactory.iterationLength);
+            let sortedIndex = imgRendererSystem.sortByZindex(imgFactory.values, imgFactory.iterationLength);
 
             expect(sortedIndex[0].index).to.equal(3);
             expect(sortedIndex[1].index).to.equal(2);
@@ -290,7 +290,7 @@ describe("imgRenderer", () => {
         it("should be able to draw images on top of each other based on the z index", () => {
             // draw in increasing order
             // red
-            let comp1 = spriteFactory.create(1, true);
+            let comp1 = imgFactory.create(1, true);
             comp1.image= imageAtlas.image;
             comp1.sourcePosition = vec2.fromValues(0, 0);
             comp1.sourceSize = vec2.fromValues(25, 25);
@@ -299,7 +299,7 @@ describe("imgRenderer", () => {
             comp1.zIndex = 0;
 
             // green
-            let comp2 = spriteFactory.create(2, true);
+            let comp2 = imgFactory.create(2, true);
             comp2.image = imageAtlas.image;
             comp2.sourcePosition = vec2.fromValues(imageAtlas.image.width - 25, 0);
             comp2.sourceSize = vec2.fromValues(25, 25);
@@ -307,7 +307,7 @@ describe("imgRenderer", () => {
             comp2.destSize = vec2.fromValues(25, 25);
             comp2.zIndex = 3;
             // blue
-            let comp3 = spriteFactory.create(3, true);
+            let comp3 = imgFactory.create(3, true);
             comp3.image = imageAtlas.image;
             comp3.sourcePosition = vec2.fromValues(imageAtlas.image.width - 25, imageAtlas.image.height - 25);
             comp3.sourceSize = vec2.fromValues(25, 25);
@@ -315,7 +315,7 @@ describe("imgRenderer", () => {
             comp3.destSize = vec2.fromValues(25, 25);
             comp3.zIndex = 1;
             // purple
-            let comp4 = spriteFactory.create(4, true);
+            let comp4 = imgFactory.create(4, true);
             comp4.image = imageAtlas.image;
             comp4.sourcePosition = vec2.fromValues(0, imageAtlas.image.height - 25);
             comp4.sourceSize = vec2.fromValues(25, 25);
@@ -323,7 +323,7 @@ describe("imgRenderer", () => {
             comp4.destSize = vec2.fromValues(25, 25);
             comp4.zIndex = 2;
 
-            imgRendererSystem.process(spriteFactory, ctx);
+            imgRendererSystem.process(imgFactory, ctx);
 
             // should be red
             let p1 = ctx.getImageData(0, 0, 1, 1);
