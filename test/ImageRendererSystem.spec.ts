@@ -8,7 +8,9 @@ import { vec2 } from "gl-matrix";
 
 describe("imgRenderer", () => {
     let imgUrl = "base/test/img/ref.png";
-    let grey = "base/test/img/grey.png";
+    let greyImgUrl = "base/test/img/grey.png";
+    let transparentImgUrl = "base/test/img/transparent.png";
+    let translucidImgUrl = "base/test/img/translucidRef.png";
     let descriptUrl = "base/test/img/running.json";
 
     let canvasId = "canvas";
@@ -60,7 +62,7 @@ describe("imgRenderer", () => {
                 expect(data.data[i]).to.be.equal(0);
             }
 
-            imageAtlas.loadImg(grey).then((res) => {
+            imageAtlas.loadImg(greyImgUrl).then((res) => {
                 ctx.drawImage(imageAtlas.image, 0, 0);
                 data = ctx.getImageData(0, 0, 10, 10);
                 // if other value than 0 is found then the image is considered drawn
@@ -291,7 +293,7 @@ describe("imgRenderer", () => {
             // draw in increasing order
             // red
             let comp1 = imgFactory.create(1, true);
-            comp1.image= imageAtlas.image;
+            comp1.image = imageAtlas.image;
             comp1.sourcePosition = vec2.fromValues(0, 0);
             comp1.sourceSize = vec2.fromValues(25, 25);
             comp1.destPosition = vec2.fromValues(0, 0);
@@ -339,12 +341,91 @@ describe("imgRenderer", () => {
             let p4 = ctx.getImageData(25 + 10 - 2, 25 + 10 - 2, 1, 1);
             expect(refImgPixelColorChecking(p4, 255, 0, 255, 255));
         });
+        it("should be able to render transparent image", (done) => {
+            // render a blue image behing in the transparent part of the top image
+            // selected pixel should be blue
+            let transparentHolder = new ImageAtlas();
+
+            transparentHolder.loadImg(transparentImgUrl).then((res) => {
+                let comp1 = imgFactory.create(1, true);
+                comp1.image = imageAtlas.image;
+                comp1.sourcePosition = vec2.fromValues(imageAtlas.image.width - 25, imageAtlas.image.width - 25);
+                comp1.sourceSize = vec2.fromValues(25, 25);
+                comp1.destPosition = vec2.fromValues(25, 25);
+                comp1.destSize = vec2.fromValues(25, 25);
+                comp1.zIndex = 0;
+
+                let comp2 = imgFactory.create(2, true);
+                comp2.image = transparentHolder.image;
+                comp2.sourcePosition = vec2.fromValues(0, 0);
+                comp2.sourceSize = vec2.fromValues(transparentHolder.image.width, transparentHolder.image.height);
+                comp2.destPosition = vec2.fromValues(0, 0);
+                comp2.destSize = vec2.fromValues(transparentHolder.image.width, transparentHolder.image.height);
+                comp2.zIndex = 1;
+
+                imgRendererSystem.process(imgFactory, ctx);
+
+                // check that non transparent part is renderer
+                let p1 = ctx.getImageData(1, 1, 1, 1);
+                expect(refImgPixelColorChecking(p1, 255, 0, 0, 255));
+
+                // check that at transparent zone of the image, the bottom image is visible
+                // should be blue 
+                let p2 = ctx.getImageData(25 + 2, 25 + 2, 1, 1);
+                expect(refImgPixelColorChecking(p2, 0, 0, 255, 255));
+                done();
+
+            }).catch((res) => {
+                done(new Error(res));
+            });
+
+
+
+        });
+        it("should be able to renderer translucid image", (done) => {
+            let translucidHolder = new ImageAtlas();
+
+            translucidHolder.loadImg(translucidImgUrl).then((res) => {
+                let comp1 = imgFactory.create(1, true);
+                comp1.image = imageAtlas.image;
+                comp1.sourcePosition = vec2.fromValues(imageAtlas.image.width - 25, imageAtlas.image.width - 25);
+                comp1.sourceSize = vec2.fromValues(25, 25);
+                comp1.destPosition = vec2.fromValues(25, 25);
+                comp1.destSize = vec2.fromValues(25, 25);
+                comp1.zIndex = 0;
+
+                let comp2 = imgFactory.create(2, true);
+                comp2.image = translucidHolder.image;
+                comp2.sourcePosition = vec2.fromValues(0, 0);
+                comp2.sourceSize = vec2.fromValues(translucidHolder.image.width, translucidHolder.image.height);
+                comp2.destPosition = vec2.fromValues(0, 0);
+                comp2.destSize = vec2.fromValues(translucidHolder.image.width, translucidHolder.image.height);
+                comp2.zIndex = 1;
+
+                imgRendererSystem.process(imgFactory, ctx);
+
+                // check that non transparent part is renderer
+                let p1 = ctx.getImageData(1, 1, 1, 1);
+                console.log(p1);
+                //red 50% opacity should give a pink 255, 0, 0, 128
+                expect(refImgPixelColorChecking(p1, 255, 0, 0, 128));
+
+                // check that at transparent zone of the image, the bottom image is visible
+                // should be blue 
+                let p2 = ctx.getImageData(25 + 2, 25 + 2, 1, 1);
+                console.log(p2);
+                // blue under a red 50% opacity should give 255-(255/2), 127-(255/2), 255-(255/2)
+                expect(refImgPixelColorChecking(p2, 128, 0, 127, 255));
+                done();
+            }).catch((res) => {
+                done(res);
+            });
+        });
     });
-});
-//checking that the pixel is of the given color 
-let refImgPixelColorChecking = function (pixel: ImageData, r: number, g: number, b: number, a: number) {
-    expect(pixel.data[0]).to.equal(r);
-    expect(pixel.data[1]).to.equal(g);
-    expect(pixel.data[2]).to.equal(b);
-    expect(pixel.data[3]).to.equal(a);
-}
+    //checking that the pixel is of the given color 
+    let refImgPixelColorChecking = function (pixel: ImageData, r: number, g: number, b: number, a: number) {
+        expect(pixel.data[0]).to.equal(r);
+        expect(pixel.data[1]).to.equal(g);
+        expect(pixel.data[2]).to.equal(b);
+        expect(pixel.data[3]).to.equal(a);
+    }
