@@ -3,12 +3,43 @@ import { ImageComponent } from "../src/ImageComponent";
 
 export { ImageRendererSystem };
 
-class ImageRendererSystem extends System {
-    // public static context;
-    constructor(public context: CanvasRenderingContext2D) {
-        super();
-        // ImageRendererSystem.context = context;
+// Sort system ou ComponentFactory have a sort method ?
+// Si sort System comment indiquer le parametre de trie ?
+// en passant le nom du param à la fonction process ?
+
+class SortByIntSystem extends System {
+    constructor() { super(); }
+    public process(args?: any[]) {
+        const paramName = args["paramName"];
+        if (!paramName) { return; }
+
+        const l = this.factories[0].iterationLength;
+        const f = this.factories[0].
     }
+    public execute(c: {id: string, active: boolean, int: number}) {}
+    /** Sort by z-index in ascending order
+     *
+     * Return index corresponding to the input array and their z-value
+     *
+     * Use of insertion sort algorithm as zIndex won't change often from frame to frame
+     */
+    public sortByZindex(input: ImageComponent[], length: number): Array<{ index: number, z: number }> {
+        const layers = [];
+        layers.push({ index: 0, z: input[0].zIndex });
+        for (let i = 1; i < length; ++i) {
+            const tmp = { index: i, z: input[i].zIndex };
+            let k = i - 1;
+            for (k; k >= 0 && (layers[k].z > tmp.z); --k) {
+                layers[k + 1] = layers[k];
+            }
+            layers[k + 1] = tmp;
+        }
+        return layers;
+    }
+}
+
+class ImageRendererSystem extends System {
+    constructor(public context: CanvasRenderingContext2D) {super(); }
     public process(args?: any[]) {
         if (!args) {
             args = [this.context];
@@ -35,23 +66,4 @@ class ImageRendererSystem extends System {
             c.destSize[1]);
     }
 
-    /** Sort by z-index in ascending order
-     *
-     * Return index corresponding to the input array and their z-value
-     *
-     * Use of insertion sort algorithm as zIndex won't change often from frame to frame
-     */
-    public sortByZindex(input: ImageComponent[], length: number): Array<{ index: number, z: number }> {
-        const layers = [];
-        layers.push({ index: 0, z: input[0].zIndex });
-        for (let i = 1; i < length; ++i) {
-            const tmp = { index: i, z: input[i].zIndex };
-            let k = i - 1;
-            for (k; k >= 0 && (layers[k].z > tmp.z); --k) {
-                layers[k + 1] = layers[k];
-            }
-            layers[k + 1] = tmp;
-        }
-        return layers;
-    }
 }
