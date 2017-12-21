@@ -2,14 +2,14 @@ export {ImageAtlas};
 
 // is this class really usefull ?
 class ImageAtlas {
-    image: HTMLImageElement;
-    constructor(){
+    public image: HTMLImageElement;
+    constructor() {
         this.image = new Image();
     }
-    loadImg(url:string):Promise<string> {
+    public loadImg(url: string): Promise<string> {
         return new Promise<string>((resolve, reject) => {
             this.image = new Image();
-            
+
             this.image.onload = () => {
                 resolve(url);
             };
@@ -20,11 +20,10 @@ class ImageAtlas {
 
             this.image.onabort = () => {
                 reject(url);
-            }
+            };
 
             this.image.src = url;
         });
-        
     }
 
     // loadDescriptor(url:string):Promise<JSON> {
