@@ -1,35 +1,43 @@
 import { ComponentFactory, IComponent, IComponentFactory, System } from "componententitysystem";
 import { ImageComponent } from "../src/ImageComponent";
 
-export { ImageRendererSystem };
+export { ImageRendererSystem, InsertionSortSystem };
 
 // Sort system ou ComponentFactory have a sort method ?
 // Si sort System comment indiquer le parametre de trie ?
 // en passant le nom du param à la fonction process ?
 
-class SortByIntSystem extends System {
+class InsertionSortSystem extends System {
     constructor(public paramName: string) { super(); }
     public process(args?: any[]) {
-        const sortedIndex = this.sort(this.factories[0].values, this.factories[0].iterationLength, this.paramName);
+        const pool = this.factories[0];
+        const sortedIndex = this.sort(pool.values, pool.iterationLength, this.paramName);
+        const l = sortedIndex.length;
+        for (let i = 0; i < sortedIndex.length; ++i) {
+            const pId = pool.values[i].entityId;
+            const sId = sortedIndex[i].id;
+            if (sId !== pId) {
+                pool.swap(pId, sId);
+            }
+        }
     }
+    /* Not use as the sorting is done in the process method */
     public execute(c: {id: string, active: boolean, int: number}) {}
-    /** Sort by z-index in ascending order
+    /** Sort components in the pool by a number parameter
      *
-     * Return index corresponding to the input array and their z-value
+     * Return an array of id and the value of the sorting parameter
      *
-     * Use of insertion sort algorithm as zIndex won't change often from frame to frame
+     * Use of insertion sort algorithm.
      */
-    public sort(input: IComponent[], length: number, paramToSort: string): Array<{ index: number, s: number }> {
+    protected sort(input: IComponent[], length: number, paramToSort: string): Array<{ id: number, s: number }> {
         const sorted = [];
-        sorted.push({ index: 0, s: input[0][paramToSort] });
+        sorted.push({ id: input[0].entityId, s: input[0][paramToSort] });
         for (let i = 1; i < length; ++i) {
-            const tmp = { index: i, s: input[i][paramToSort] };
+            const tmp = { id: input[i].entityId, s: input[i][paramToSort] };
             let k = i - 1;
             for (k; k >= 0 && (sorted[k].s > tmp.s); --k) {
-                // swap in the pool instead
                 sorted[k + 1] = sorted[k];
             }
-            // swap in the pool instead
             sorted[k + 1] = tmp;
         }
         return sorted;

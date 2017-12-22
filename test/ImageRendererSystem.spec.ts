@@ -4,7 +4,7 @@ import { vec2 } from "gl-matrix";
 import "mocha";
 import { ImageAtlas } from "../src/asset";
 import { ImageComponent } from "../src/ImageComponent";
-import { ImageRendererSystem } from "../src/ImageRendererSystem";
+import { ImageRendererSystem, InsertionSortSystem } from "../src/ImageRendererSystem";
 
 describe("imgRenderer", () => {
     const imgUrl = "base/test/img/ref.png";
@@ -89,7 +89,7 @@ describe("imgRenderer", () => {
             // });
         });
         describe("image component", () => {
-            it("should contain a reference to the image, the source position, source size, and z-index", (done) => {
+            it("should contain a reference to the image, the source position, source size", (done) => {
                 const test = (imgAtlas) => {
                     const spComponent = new ImageComponent(1, true, imgAtlas.image, vec2.fromValues(1, 1), vec2.fromValues(1, 1), vec2.fromValues(1, 1), vec2.fromValues(1, 1), 0);
                     expect(spComponent.image).to.be.instanceOf(HTMLImageElement);
@@ -101,7 +101,6 @@ describe("imgRenderer", () => {
                     expect(spComponent.destSize[1]).to.equal(1);
                     expect(spComponent.destPosition[0]).to.equal(1);
                     expect(spComponent.destPosition[1]).to.equal(1);
-                    expect(spComponent.zIndex).to.equal(0);
                     done();
                 };
                 imageAtlas.loadImg(imgUrl).then((res) => {
@@ -120,6 +119,10 @@ describe("imgRenderer", () => {
         let imgFactory = new ComponentFactory<ImageComponent>(5, ImageComponent, new Image(), vec2.fromValues(0, 0), vec2.fromValues(0, 0), vec2.fromValues(0, 0), vec2.fromValues(0, 0), 5);
 
         let imgRendererSystem = new ImageRendererSystem(ctx);
+
+        class Layer implements IComponent {
+            constructor(public entityId: number, public active: boolean, public zIndex: number) {}
+        }
 
         beforeEach(() => {
             canvas = document.getElementById(canvasId) as HTMLCanvasElement;
@@ -275,7 +278,9 @@ describe("imgRenderer", () => {
             expect(refImgPixelColorChecking(secondComponentPixel, 255, 0, 0, 255));
 
         });
-        it("should be able to return a sorted list of index  ", () => {
+        it("should be able to sort component based on their z-index  ", () => {
+
+            // const layerFactory = new ComponentFactory<Layer>(5, Layer);
             const c1 = imgFactory.create(1, true);
             c1.zIndex = 3;
             const c2 = imgFactory.create(2, true);
@@ -285,15 +290,28 @@ describe("imgRenderer", () => {
             const c4 = imgFactory.create(4, true);
             c4.zIndex = 0;
             const arrayToSort = [c1, c2, c3, c4];
-            // should give [3, 2, 1, 0]
-            const sortedIndex = imgRendererSystem.sortByZindex(imgFactory.values, imgFactory.iterationLength);
 
-            expect(sortedIndex[0].index).to.equal(3);
-            expect(sortedIndex[1].index).to.equal(2);
-            expect(sortedIndex[2].index).to.equal(1);
-            expect(sortedIndex[3].index).to.equal(0);
+            expect(imgFactory.values[0].zIndex).to.equal(3);
+            expect(imgFactory.values[1].zIndex).to.equal(2);
+            expect(imgFactory.values[2].zIndex).to.equal(1);
+            expect(imgFactory.values[3].zIndex).to.equal(0);
+
+            // should give [3, 2, 1, 0]
+            const sortSystem = new InsertionSortSystem("zIndex");
+            sortSystem.setFactories(imgFactory);
+            sortSystem.process();
+
+            expect(imgFactory.values[0].zIndex).to.equal(0);
+            expect(imgFactory.values[1].zIndex).to.equal(1);
+            expect(imgFactory.values[2].zIndex).to.equal(2);
+            expect(imgFactory.values[3].zIndex).to.equal(3);
         });
         it("should be able to draw images on top of each other based on the z index", () => {
+            const layerFactory = new ComponentFactory<Layer>(5, Layer);
+            const sortSystem = new InsertionSortSystem("zIndex");
+            sortSystem.setFactories(imgFactory);
+            imgRendererSystem.setFactories(imgFactory);
+
             // draw in increasing order
             // red
             const comp1 = imgFactory.create(1, true);
@@ -312,6 +330,7 @@ describe("imgRenderer", () => {
             comp2.destPosition = vec2.fromValues(5, 5);
             comp2.destSize = vec2.fromValues(25, 25);
             comp2.zIndex = 3;
+
             // blue
             const comp3 = imgFactory.create(3, true);
             comp3.image = imageAtlas.image;
@@ -320,6 +339,7 @@ describe("imgRenderer", () => {
             comp3.destPosition = vec2.fromValues(10, 10);
             comp3.destSize = vec2.fromValues(25, 25);
             comp3.zIndex = 1;
+
             // purple
             const comp4 = imgFactory.create(4, true);
             comp4.image = imageAtlas.image;
@@ -329,7 +349,7 @@ describe("imgRenderer", () => {
             comp4.destSize = vec2.fromValues(25, 25);
             comp4.zIndex = 2;
 
-            imgRendererSystem.setFactories(imgFactory);
+            sortSystem.process();
             imgRendererSystem.process();
 
             // should be red
@@ -358,7 +378,7 @@ describe("imgRenderer", () => {
                 comp1.sourceSize = vec2.fromValues(25, 25);
                 comp1.destPosition = vec2.fromValues(25, 25);
                 comp1.destSize = vec2.fromValues(25, 25);
-                comp1.zIndex = 0;
+                // comp1.zIndex = 0;
 
                 const comp2 = imgFactory.create(2, true);
                 comp2.image = transparentHolder.image;
@@ -366,7 +386,7 @@ describe("imgRenderer", () => {
                 comp2.sourceSize = vec2.fromValues(transparentHolder.image.width, transparentHolder.image.height);
                 comp2.destPosition = vec2.fromValues(0, 0);
                 comp2.destSize = vec2.fromValues(transparentHolder.image.width, transparentHolder.image.height);
-                comp2.zIndex = 1;
+                // comp2.zIndex = 1;
 
                 imgRendererSystem.setFactories(imgFactory);
                 imgRendererSystem.process();
@@ -395,7 +415,7 @@ describe("imgRenderer", () => {
                 comp1.sourceSize = vec2.fromValues(25, 25);
                 comp1.destPosition = vec2.fromValues(25, 25);
                 comp1.destSize = vec2.fromValues(25, 25);
-                comp1.zIndex = 0;
+                // comp1.zIndex = 0;
 
                 const comp2 = imgFactory.create(2, true);
                 comp2.image = translucidHolder.image;
@@ -403,7 +423,7 @@ describe("imgRenderer", () => {
                 comp2.sourceSize = vec2.fromValues(translucidHolder.image.width, translucidHolder.image.height);
                 comp2.destPosition = vec2.fromValues(0, 0);
                 comp2.destSize = vec2.fromValues(translucidHolder.image.width, translucidHolder.image.height);
-                comp2.zIndex = 1;
+                // comp2.zIndex = 1;
 
                 imgRendererSystem.setFactories(imgFactory);
                 imgRendererSystem.process();

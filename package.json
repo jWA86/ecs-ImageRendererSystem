@@ -40,8 +40,7 @@
     "typescript": "^2.6.2"
   },
   "dependencies": {
-    "componententitysystem": "^0.2.0",
-    "fastiterationmap": "^1.1.4",
+    "componententitysystem": "^0.3.2",
     "gl-matrix": "^2.4.0"
   }
 }
