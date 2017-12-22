@@ -8,13 +8,9 @@ export { ImageRendererSystem };
 // en passant le nom du param à la fonction process ?
 
 class SortByIntSystem extends System {
-    constructor() { super(); }
+    constructor(public paramName: string) { super(); }
     public process(args?: any[]) {
-        const paramName = args["paramName"];
-        if (!paramName) { return; }
-
-        const l = this.factories[0].iterationLength;
-        const f = this.factories[0].
+        const sortedIndex = this.sort(this.factories[0].values, this.factories[0].iterationLength, this.paramName);
     }
     public execute(c: {id: string, active: boolean, int: number}) {}
     /** Sort by z-index in ascending order
@@ -23,18 +19,20 @@ class SortByIntSystem extends System {
      *
      * Use of insertion sort algorithm as zIndex won't change often from frame to frame
      */
-    public sortByZindex(input: ImageComponent[], length: number): Array<{ index: number, z: number }> {
-        const layers = [];
-        layers.push({ index: 0, z: input[0].zIndex });
+    public sort(input: IComponent[], length: number, paramToSort: string): Array<{ index: number, s: number }> {
+        const sorted = [];
+        sorted.push({ index: 0, s: input[0][paramToSort] });
         for (let i = 1; i < length; ++i) {
-            const tmp = { index: i, z: input[i].zIndex };
+            const tmp = { index: i, s: input[i][paramToSort] };
             let k = i - 1;
-            for (k; k >= 0 && (layers[k].z > tmp.z); --k) {
-                layers[k + 1] = layers[k];
+            for (k; k >= 0 && (sorted[k].s > tmp.s); --k) {
+                // swap in the pool instead
+                sorted[k + 1] = sorted[k];
             }
-            layers[k + 1] = tmp;
+            // swap in the pool instead
+            sorted[k + 1] = tmp;
         }
-        return layers;
+        return sorted;
     }
 }
 
