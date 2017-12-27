@@ -1,14 +1,16 @@
 {
-  "name": "spriterenderersystem",
+  "name": "ecs-imagerenderersystem",
   "version": "0.0.1",
   "description": "simple system for rendering sprite for ecs",
-  "main": "SpriteRenderSystem.js",
+  "main": "./dist/index.js",
+  "types": "./dist/src/ImageRendererSystem.d.ts",
   "scripts": {
     "test": "karma start"
+    "build": "webpack"
   },
   "repository": {
     "type": "git",
-    "url": "systemsRepo"
+    "url": "https://github.com/jWA86/ImageRendererSystem.git"
   },
   "keywords": [
     "2D",
@@ -41,6 +43,7 @@
   },
   "dependencies": {
     "componententitysystem": "^0.4.3",
+    "ecs-sortsystem": "0.0.1",
     "gl-matrix": "^2.4.0"
   }
 }

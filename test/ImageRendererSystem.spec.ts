@@ -1,10 +1,11 @@
 import { assert, expect } from "chai";
 import { ComponentFactory, IComponent, IComponentFactory } from "componententitysystem";
+import { SortSystem } from "ecs-sortsystem";
 import { vec2 } from "gl-matrix";
 import "mocha";
 import { ImageAtlas } from "../src/asset";
 import { ImageComponent } from "../src/ImageComponent";
-import { ImageRendererSystem, InsertionSortSystem } from "../src/ImageRendererSystem";
+import { ImageRendererSystem } from "../src/ImageRendererSystem";
 
 describe("imgRenderer", () => {
     const imgUrl = "base/test/img/ref.png";
@@ -121,7 +122,7 @@ describe("imgRenderer", () => {
         let imgRendererSystem = new ImageRendererSystem(ctx);
 
         class Layer implements IComponent {
-            constructor(public entityId: number, public active: boolean, public zIndex: number) {}
+            constructor(public entityId: number, public active: boolean, public zIndex: number) { }
         }
 
         beforeEach(() => {
@@ -297,7 +298,7 @@ describe("imgRenderer", () => {
             expect(imgFactory.values[3].zIndex).to.equal(0);
 
             // should give [3, 2, 1, 0]
-            const sortSystem = new InsertionSortSystem("zIndex");
+            const sortSystem = new SortSystem("zIndex");
             sortSystem.setFactories(imgFactory);
             sortSystem.process();
 
@@ -308,7 +309,7 @@ describe("imgRenderer", () => {
         });
         it("should be able to draw images on top of each other based on the z index", () => {
             const layerFactory = new ComponentFactory<Layer>(5, Layer);
-            const sortSystem = new InsertionSortSystem("zIndex");
+            const sortSystem = new SortSystem("zIndex");
             sortSystem.setFactories(imgFactory);
             imgRendererSystem.setFactories(imgFactory);
 
