@@ -1,5 +1,5 @@
 import { assert, expect } from "chai";
-import { ComponentFactory, IComponent, IComponentFactory } from "componententitysystem";
+import { ComponentFactory, IComponent, IComponentFactory } from "ecs-framework";
 import { SortSystem } from "ecs-sortsystem";
 import { vec2 } from "gl-matrix";
 import "mocha";

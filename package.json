@@ -1,6 +1,6 @@
 {
   "name": "ecs-imagerenderersystem",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "description": "simple system for rendering image for the ecs framework",
   "main": "./dist/index.js",
   "types": "./dist/src/ImageRendererSystem.d.ts",
@@ -44,8 +44,8 @@
     "webpack": "^3.10.0"
   },
   "dependencies": {
-    "componententitysystem": "^0.4.3",
-    "ecs-sortsystem": "0.0.1",
+    "ecs-framework": "^0.4.4",
+    "ecs-sortsystem": "1.0.0",
     "gl-matrix": "^2.4.0"
   }
 }

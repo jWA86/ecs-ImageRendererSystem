@@ -97,7 +97,7 @@ var __extends = (this && this.__extends) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-var componententitysystem_1 = __webpack_require__(2);
+var ecs_framework_1 = __webpack_require__(2);
 var ImageRendererSystem = /** @class */ (function (_super) {
     __extends(ImageRendererSystem, _super);
     function ImageRendererSystem(context) {
@@ -123,7 +123,7 @@ var ImageRendererSystem = /** @class */ (function (_super) {
         context.drawImage(c.image, c.sourcePosition[0], c.sourcePosition[1], c.sourceSize[0], c.sourceSize[1], c.destPosition[0] - imgCenterX, c.destPosition[1] - imgCenterY, c.destSize[0], c.destSize[1]);
     };
     return ImageRendererSystem;
-}(componententitysystem_1.System));
+}(ecs_framework_1.System));
 exports.ImageRendererSystem = ImageRendererSystem;
 
 

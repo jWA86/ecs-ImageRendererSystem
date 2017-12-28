@@ -1,4 +1,4 @@
-import { ComponentFactory, IComponent, IComponentFactory, System } from "componententitysystem";
+import { ComponentFactory, IComponent, IComponentFactory, System } from "ecs-framework";
 import { ImageComponent } from "../src/ImageComponent";
 
 export { ImageRendererSystem };

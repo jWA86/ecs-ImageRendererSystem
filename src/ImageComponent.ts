@@ -1,4 +1,4 @@
-import { IComponent } from "componententitysystem";
+import { IComponent } from "ecs-framework";
 import { vec2 } from "gl-matrix";
 import { ImageAtlas } from "./asset";
 
