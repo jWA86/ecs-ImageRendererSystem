@@ -7,7 +7,7 @@
 		exports["ecs-imagerenderersystem"] = factory(require("ecs-framework"));
 	else
 		root["ecs-imagerenderersystem"] = factory(root["ecs-framework"]);
-})(this, function(__WEBPACK_EXTERNAL_MODULE_4__) {
+})(this, function(__WEBPACK_EXTERNAL_MODULE_5__) {
 return /******/ (function(modules) { // webpackBootstrap
 /******/ 	// The module cache
 /******/ 	var installedModules = {};
@@ -87,14 +87,49 @@ module.exports = __webpack_require__(1);
 "use strict";
 
 Object.defineProperty(exports, "__esModule", { value: true });
-var ImageComponent_1 = __webpack_require__(2);
+var asset_1 = __webpack_require__(2);
+exports.ImageAtlas = asset_1.ImageAtlas;
+var ImageComponent_1 = __webpack_require__(3);
 exports.ImageComponent = ImageComponent_1.ImageComponent;
-var ImageRendererSystem_1 = __webpack_require__(3);
+var ImageRendererSystem_1 = __webpack_require__(4);
 exports.ImageRendererSystem = ImageRendererSystem_1.ImageRendererSystem;
 
 
 /***/ }),
 /* 2 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", { value: true });
+var ImageAtlas = /** @class */ (function () {
+    function ImageAtlas() {
+        this.image = new Image();
+    }
+    ImageAtlas.prototype.loadImg = function (url) {
+        var _this = this;
+        return new Promise(function (resolve, reject) {
+            _this.image = new Image();
+            _this.image.onload = function () {
+                resolve(url);
+            };
+            _this.image.onerror = function () {
+                reject(url);
+            };
+            _this.image.onabort = function () {
+                reject(url);
+            };
+            _this.image.src = url;
+        });
+    };
+    return ImageAtlas;
+}());
+exports.ImageAtlas = ImageAtlas;
+// Factory de ImageAtlas ?
+
+
+/***/ }),
+/* 3 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -120,7 +155,7 @@ exports.ImageComponent = ImageComponent;
 
 
 /***/ }),
-/* 3 */
+/* 4 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -136,7 +171,7 @@ var __extends = (this && this.__extends) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-var ecs_framework_1 = __webpack_require__(4);
+var ecs_framework_1 = __webpack_require__(5);
 var ImageRendererSystem = /** @class */ (function (_super) {
     __extends(ImageRendererSystem, _super);
     function ImageRendererSystem(context) {
@@ -167,10 +202,10 @@ exports.ImageRendererSystem = ImageRendererSystem;
 
 
 /***/ }),
-/* 4 */
+/* 5 */
 /***/ (function(module, exports) {
 
-module.exports = __WEBPACK_EXTERNAL_MODULE_4__;
+module.exports = __WEBPACK_EXTERNAL_MODULE_5__;
 
 /***/ })
 /******/ ]);
