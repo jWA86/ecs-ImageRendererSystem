@@ -1,6 +1,5 @@
-export {ImageAtlas};
+export { ImageAtlas };
 
-// is this class really usefull ?
 class ImageAtlas {
     public image: HTMLImageElement;
     constructor() {

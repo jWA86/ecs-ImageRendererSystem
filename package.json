@@ -1,9 +1,9 @@
 {
   "name": "ecs-imagerenderersystem",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "simple system for rendering image for the ecs framework",
   "main": "./dist/index.js",
-  "types": "./dist/src/ImageRendererSystem.d.ts",
+  "types": "./dist/src/entry.d.ts",
   "scripts": {
     "test": "karma start",
     "build": "webpack"
@@ -21,31 +21,25 @@
   "author": "jWA86",
   "license": "MIT",
   "devDependencies": {
-    "@types/bezier-easing": "0.0.30",
     "@types/chai": "^4.0.10",
     "@types/gl-matrix": "^2.4.0",
-    "@types/mocha": "^2.2.42",
-    "@types/node": "^8.5.2",
+    "@types/mocha": "^2.2.45",
     "chai": "^4.1.2",
+    "ecs-sortsystem": "^1.0.1",
     "es6-shim": "^0.35.3",
     "karma": "^1.7.1",
     "karma-chrome-launcher": "^2.2.0",
-    "karma-cli": "^1.0.1",
-    "karma-coverage": "^1.1.1",
     "karma-firefox-launcher": "^1.1.0",
     "karma-ie-launcher": "^1.0.0",
     "karma-mocha": "^1.3.0",
     "karma-phantomjs-launcher": "^1.0.4",
     "karma-typescript": "^3.0.5",
-    "mkdirp": "^0.5.1",
-    "mocha": "^3.5.0",
+    "mocha": "^4.1.0",
     "ts-loader": "^3.2.0",
-    "typescript": "^2.6.2",
-    "webpack": "^3.10.0"
+    "typescript": "^2.6.2"
   },
   "dependencies": {
-    "ecs-framework": "^0.4.4",
-    "ecs-sortsystem": "1.0.0",
+    "ecs-framework": "^0.4.7",
     "gl-matrix": "^2.4.0"
   }
 }
