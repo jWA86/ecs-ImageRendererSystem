@@ -1,6 +1,6 @@
 {
   "name": "ecs-imagerenderersystem",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "simple system for rendering image for the ecs framework",
   "main": "./dist/index.js",
   "types": "./dist/src/entry.d.ts",
@@ -39,7 +39,7 @@
     "typescript": "^2.6.2"
   },
   "dependencies": {
-    "ecs-framework": "^0.4.7",
+    "ecs-framework": "^0.4.11",
     "gl-matrix": "^2.4.0"
   }
 }

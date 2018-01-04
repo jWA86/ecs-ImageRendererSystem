@@ -146,7 +146,7 @@ describe("imgRenderer", () => {
             comp.destPosition = vec2.fromValues(posX, posY);
             comp.destSize = vec2.fromValues(imageAtlas.image.width, imageAtlas.image.height);
 
-            imgRendererSystem.setFactories(imgFactory);
+            imgRendererSystem.setFactories(imgFactory, imgFactory, imgFactory, imgFactory, imgFactory, imgFactory);
             imgRendererSystem.process();
 
             // corner of the image should start at (poxX, posY)
@@ -175,7 +175,7 @@ describe("imgRenderer", () => {
             comp.destPosition = vec2.fromValues(0, 0);
             comp.destSize = vec2.fromValues(srcWidth, srcHeight);
 
-            imgRendererSystem.setFactories(imgFactory);
+            imgRendererSystem.setFactories(imgFactory, imgFactory, imgFactory, imgFactory, imgFactory, imgFactory);
             imgRendererSystem.process();
 
             // should have only top right corner and bottom right corner of the image drawn
@@ -202,7 +202,7 @@ describe("imgRenderer", () => {
             comp.destPosition = vec2.fromValues(0, 0);
             comp.destSize = vec2.fromValues(destWidth, destHeight);
 
-            imgRendererSystem.setFactories(imgFactory);
+            imgRendererSystem.setFactories(imgFactory, imgFactory, imgFactory, imgFactory, imgFactory, imgFactory);
             imgRendererSystem.process();
 
             const topLeftCorner = ctx.getImageData(0, 0, 1, 1);
@@ -227,7 +227,7 @@ describe("imgRenderer", () => {
             comp.destSize = vec2.fromValues(imageAtlas.image.width, imageAtlas.image.height);
             comp.rotation = rotation;
 
-            imgRendererSystem.setFactories(imgFactory);
+            imgRendererSystem.setFactories(imgFactory, imgFactory, imgFactory, imgFactory, imgFactory, imgFactory);
             imgRendererSystem.process();
 
             const topLeftCorner = ctx.getImageData(3, 3, 1, 1);
@@ -266,7 +266,7 @@ describe("imgRenderer", () => {
             comp2.destPosition = vec2.fromValues(100, 100);
             comp2.destSize = vec2.fromValues(25, 25);
 
-            imgRendererSystem.setFactories(imgFactory);
+            imgRendererSystem.setFactories(imgFactory, imgFactory, imgFactory, imgFactory, imgFactory, imgFactory);
             imgRendererSystem.process();
 
             const fistComponentTopPixel = ctx.getImageData(2, 2, 1, 1);
@@ -311,7 +311,7 @@ describe("imgRenderer", () => {
             const layerFactory = new ComponentFactory<Layer>(5, Layer);
             const sortSystem = new SortSystem("zIndex");
             sortSystem.setFactories(imgFactory);
-            imgRendererSystem.setFactories(imgFactory);
+            imgRendererSystem.setFactories(imgFactory, imgFactory, imgFactory, imgFactory, imgFactory, imgFactory);
 
             // draw in increasing order
             // red
@@ -389,7 +389,7 @@ describe("imgRenderer", () => {
                 comp2.destSize = vec2.fromValues(transparentHolder.image.width, transparentHolder.image.height);
                 // comp2.zIndex = 1;
 
-                imgRendererSystem.setFactories(imgFactory);
+                imgRendererSystem.setFactories(imgFactory, imgFactory, imgFactory, imgFactory, imgFactory, imgFactory);
                 imgRendererSystem.process();
 
                 // check that non transparent part is renderer
@@ -426,7 +426,7 @@ describe("imgRenderer", () => {
                 comp2.destSize = vec2.fromValues(translucidHolder.image.width, translucidHolder.image.height);
                 // comp2.zIndex = 1;
 
-                imgRendererSystem.setFactories(imgFactory);
+                imgRendererSystem.setFactories(imgFactory, imgFactory, imgFactory, imgFactory, imgFactory, imgFactory);
                 imgRendererSystem.process();
 
                 // check that non transparent part is renderer
