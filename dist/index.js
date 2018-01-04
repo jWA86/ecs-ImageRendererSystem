@@ -180,21 +180,15 @@ var ImageRendererSystem = /** @class */ (function (_super) {
         return _this;
     }
     ImageRendererSystem.prototype.process = function (args) {
-        if (!args) {
-            args = [this.context];
-        }
-        else {
-            args.push(this.context);
-        }
         _super.prototype.process.call(this, args);
         this.context.setTransform(1, 0, 0, 1, 0, 0);
     };
-    ImageRendererSystem.prototype.execute = function (c, context) {
-        var imgCenterX = c.destSize[0] / 2;
-        var imgCenterY = c.destSize[1] / 2;
-        context.setTransform(1, 0, 0, 1, imgCenterX, imgCenterY);
-        context.rotate(c.rotation);
-        context.drawImage(c.image, c.sourcePosition[0], c.sourcePosition[1], c.sourceSize[0], c.sourceSize[1], c.destPosition[0] - imgCenterX, c.destPosition[1] - imgCenterY, c.destSize[0], c.destSize[1]);
+    ImageRendererSystem.prototype.execute = function (imgC, sourcePositionC, sourceSizeC, destPositionC, destSizeC, rotationC) {
+        var imgCenterX = destSizeC.destSize[0] / 2;
+        var imgCenterY = destSizeC.destSize[1] / 2;
+        this.context.setTransform(1, 0, 0, 1, imgCenterX, imgCenterY);
+        this.context.rotate(rotationC.rotation);
+        this.context.drawImage(imgC.image, sourcePositionC.sourcePosition[0], sourcePositionC.sourcePosition[1], sourceSizeC.sourceSize[0], sourceSizeC.sourceSize[1], destPositionC.destPosition[0] - imgCenterX, destPositionC.destPosition[1] - imgCenterY, destSizeC.destSize[0], destSizeC.destSize[1]);
     };
     return ImageRendererSystem;
 }(ecs_framework_1.System));
