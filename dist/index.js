@@ -1,13 +1,13 @@
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
-		module.exports = factory(require("ecs-framework"));
+		module.exports = factory(require("ecs-framework"), require("gl-matrix"));
 	else if(typeof define === 'function' && define.amd)
-		define(["ecs-framework"], factory);
+		define(["ecs-framework", "gl-matrix"], factory);
 	else if(typeof exports === 'object')
-		exports["ecs-imagerenderersystem"] = factory(require("ecs-framework"));
+		exports["ecs-imagerenderersystem"] = factory(require("ecs-framework"), require("gl-matrix"));
 	else
-		root["ecs-imagerenderersystem"] = factory(root["ecs-framework"]);
-})(this, function(__WEBPACK_EXTERNAL_MODULE_5__) {
+		root["ecs-imagerenderersystem"] = factory(root["ecs-framework"], root["gl-matrix"]);
+})(this, function(__WEBPACK_EXTERNAL_MODULE_5__, __WEBPACK_EXTERNAL_MODULE_6__) {
 return /******/ (function(modules) { // webpackBootstrap
 /******/ 	// The module cache
 /******/ 	var installedModules = {};
@@ -172,23 +172,36 @@ var __extends = (this && this.__extends) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
 var ecs_framework_1 = __webpack_require__(5);
+var gl_matrix_1 = __webpack_require__(6);
 var ImageRendererSystem = /** @class */ (function (_super) {
     __extends(ImageRendererSystem, _super);
     function ImageRendererSystem(context) {
         var _this = _super.call(this) || this;
         _this.context = context;
+        _this._parameters = {
+            destP: { destPosition: gl_matrix_1.vec2.create() },
+            destS: { destSize: gl_matrix_1.vec2.create() },
+            i: { image: new Image() },
+            r: { rotation: 0 },
+            sourceP: { sourcePosition: gl_matrix_1.vec2.create() },
+            sourceS: { sourceSize: gl_matrix_1.vec2.create() },
+        };
         return _this;
     }
-    ImageRendererSystem.prototype.process = function (args) {
-        _super.prototype.process.call(this, args);
+    ImageRendererSystem.prototype.process = function () {
+        var args = [];
+        for (var _i = 0; _i < arguments.length; _i++) {
+            args[_i] = arguments[_i];
+        }
+        _super.prototype.process.apply(this, args);
         this.context.setTransform(1, 0, 0, 1, 0, 0);
     };
-    ImageRendererSystem.prototype.execute = function (imgC, sourcePositionC, sourceSizeC, destPositionC, destSizeC, rotationC) {
-        var imgCenterX = destSizeC.destSize[0] / 2;
-        var imgCenterY = destSizeC.destSize[1] / 2;
+    ImageRendererSystem.prototype.execute = function (params) {
+        var imgCenterX = params.destS.destSize[0] / 2;
+        var imgCenterY = params.destS.destSize[1] / 2;
         this.context.setTransform(1, 0, 0, 1, imgCenterX, imgCenterY);
-        this.context.rotate(rotationC.rotation);
-        this.context.drawImage(imgC.image, sourcePositionC.sourcePosition[0], sourcePositionC.sourcePosition[1], sourceSizeC.sourceSize[0], sourceSizeC.sourceSize[1], destPositionC.destPosition[0] - imgCenterX, destPositionC.destPosition[1] - imgCenterY, destSizeC.destSize[0], destSizeC.destSize[1]);
+        this.context.rotate(params.r.rotation);
+        this.context.drawImage(params.i.image, params.sourceP.sourcePosition[0], params.sourceP.sourcePosition[1], params.sourceS.sourceSize[0], params.sourceS.sourceSize[1], params.destP.destPosition[0] - imgCenterX, params.destP.destPosition[1] - imgCenterY, params.destS.destSize[0], params.destS.destSize[1]);
     };
     return ImageRendererSystem;
 }(ecs_framework_1.System));
@@ -200,6 +213,12 @@ exports.ImageRendererSystem = ImageRendererSystem;
 /***/ (function(module, exports) {
 
 module.exports = __WEBPACK_EXTERNAL_MODULE_5__;
+
+/***/ }),
+/* 6 */
+/***/ (function(module, exports) {
+
+module.exports = __WEBPACK_EXTERNAL_MODULE_6__;
 
 /***/ })
 /******/ ]);

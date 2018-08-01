@@ -1,5 +1,5 @@
 import { assert, expect } from "chai";
-import { ComponentFactory, IComponent, IComponentFactory } from "ecs-framework";
+import { ComponentFactory, interfaces } from "ecs-framework";
 import { SortSystem } from "ecs-sortsystem";
 import { vec2 } from "gl-matrix";
 import "mocha";
@@ -21,6 +21,9 @@ describe("imgRenderer", () => {
     document.body.innerHTML = mockHtml;
 
     let imageAtlas = new ImageAtlas();
+
+    const defaultImageComponent: ImageComponent = new ImageComponent(0, true, new Image(), vec2.create(), vec2.create(), vec2.create(), vec2.create(), 0, 0);
+
     beforeEach(() => {
         document.body.innerHTML = "";
         imageAtlas = new ImageAtlas();
@@ -117,11 +120,11 @@ describe("imgRenderer", () => {
         let canvas: HTMLCanvasElement = document.getElementById(canvasId) as HTMLCanvasElement;
         let ctx: CanvasRenderingContext2D = canvas.getContext("2d");
 
-        let imgFactory = new ComponentFactory<ImageComponent>(5, ImageComponent, new Image(), vec2.fromValues(0, 0), vec2.fromValues(0, 0), vec2.fromValues(0, 0), vec2.fromValues(0, 0), 5);
+        let imgFactory = new ComponentFactory<ImageComponent>(5, defaultImageComponent);
 
         let imgRendererSystem = new ImageRendererSystem(ctx);
 
-        class Layer implements IComponent {
+        class Layer implements interfaces.IComponent {
             constructor(public entityId: number, public active: boolean, public zIndex: number) { }
         }
 
@@ -129,7 +132,7 @@ describe("imgRenderer", () => {
             canvas = document.getElementById(canvasId) as HTMLCanvasElement;
             ctx = canvas.getContext("2d");
 
-            imgFactory = new ComponentFactory<ImageComponent>(5, ImageComponent, new Image(), vec2.fromValues(0, 0), vec2.fromValues(0, 0), vec2.fromValues(0, 0), vec2.fromValues(0, 0));
+            imgFactory = new ComponentFactory<ImageComponent>(5, defaultImageComponent);
 
             imageAtlas.loadImg(imgUrl);
             imgRendererSystem = new ImageRendererSystem(ctx);
@@ -146,7 +149,7 @@ describe("imgRenderer", () => {
             comp.destPosition = vec2.fromValues(posX, posY);
             comp.destSize = vec2.fromValues(imageAtlas.image.width, imageAtlas.image.height);
 
-            imgRendererSystem.setFactories(imgFactory, imgFactory, imgFactory, imgFactory, imgFactory, imgFactory);
+            imgRendererSystem.setParamSource("*", imgFactory);
             imgRendererSystem.process();
 
             // corner of the image should start at (poxX, posY)
@@ -175,7 +178,7 @@ describe("imgRenderer", () => {
             comp.destPosition = vec2.fromValues(0, 0);
             comp.destSize = vec2.fromValues(srcWidth, srcHeight);
 
-            imgRendererSystem.setFactories(imgFactory, imgFactory, imgFactory, imgFactory, imgFactory, imgFactory);
+            imgRendererSystem.setParamSource("*", imgFactory);
             imgRendererSystem.process();
 
             // should have only top right corner and bottom right corner of the image drawn
@@ -202,7 +205,7 @@ describe("imgRenderer", () => {
             comp.destPosition = vec2.fromValues(0, 0);
             comp.destSize = vec2.fromValues(destWidth, destHeight);
 
-            imgRendererSystem.setFactories(imgFactory, imgFactory, imgFactory, imgFactory, imgFactory, imgFactory);
+            imgRendererSystem.setParamSource("*", imgFactory);
             imgRendererSystem.process();
 
             const topLeftCorner = ctx.getImageData(0, 0, 1, 1);
@@ -227,7 +230,7 @@ describe("imgRenderer", () => {
             comp.destSize = vec2.fromValues(imageAtlas.image.width, imageAtlas.image.height);
             comp.rotation = rotation;
 
-            imgRendererSystem.setFactories(imgFactory, imgFactory, imgFactory, imgFactory, imgFactory, imgFactory);
+            imgRendererSystem.setParamSource("*", imgFactory);
             imgRendererSystem.process();
 
             const topLeftCorner = ctx.getImageData(3, 3, 1, 1);
@@ -266,7 +269,7 @@ describe("imgRenderer", () => {
             comp2.destPosition = vec2.fromValues(100, 100);
             comp2.destSize = vec2.fromValues(25, 25);
 
-            imgRendererSystem.setFactories(imgFactory, imgFactory, imgFactory, imgFactory, imgFactory, imgFactory);
+            imgRendererSystem.setParamSource("*", imgFactory);
             imgRendererSystem.process();
 
             const fistComponentTopPixel = ctx.getImageData(2, 2, 1, 1);
@@ -299,7 +302,7 @@ describe("imgRenderer", () => {
 
             // should give [3, 2, 1, 0]
             const sortSystem = new SortSystem("zIndex");
-            sortSystem.setFactories(imgFactory);
+            sortSystem.setParamSource("zIndex", imgFactory);
             sortSystem.process();
 
             expect(imgFactory.values[0].zIndex).to.equal(0);
@@ -308,10 +311,10 @@ describe("imgRenderer", () => {
             expect(imgFactory.values[3].zIndex).to.equal(3);
         });
         it("should be able to draw images on top of each other based on the z index", () => {
-            const layerFactory = new ComponentFactory<Layer>(5, Layer);
+            const layerFactory = new ComponentFactory<Layer>(5, new Layer(0, true, 0));
             const sortSystem = new SortSystem("zIndex");
-            sortSystem.setFactories(imgFactory);
-            imgRendererSystem.setFactories(imgFactory, imgFactory, imgFactory, imgFactory, imgFactory, imgFactory);
+            sortSystem.setParamSource("*", imgFactory);
+            imgRendererSystem.setParamSource("*", imgFactory);
 
             // draw in increasing order
             // red
@@ -389,7 +392,7 @@ describe("imgRenderer", () => {
                 comp2.destSize = vec2.fromValues(transparentHolder.image.width, transparentHolder.image.height);
                 // comp2.zIndex = 1;
 
-                imgRendererSystem.setFactories(imgFactory, imgFactory, imgFactory, imgFactory, imgFactory, imgFactory);
+                imgRendererSystem.setParamSource("*", imgFactory);
                 imgRendererSystem.process();
 
                 // check that non transparent part is renderer
@@ -426,7 +429,7 @@ describe("imgRenderer", () => {
                 comp2.destSize = vec2.fromValues(translucidHolder.image.width, translucidHolder.image.height);
                 // comp2.zIndex = 1;
 
-                imgRendererSystem.setFactories(imgFactory, imgFactory, imgFactory, imgFactory, imgFactory, imgFactory);
+                imgRendererSystem.setParamSource("*", imgFactory);
                 imgRendererSystem.process();
 
                 // check that non transparent part is renderer

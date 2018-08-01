@@ -1,8 +1,8 @@
 /// <reference types="gl-matrix" />
-import { IComponent } from "ecs-framework";
+import { interfaces } from "ecs-framework";
 import { vec2 } from "gl-matrix";
 export { ImageComponent };
-declare class ImageComponent implements IComponent {
+declare class ImageComponent implements interfaces.IComponent {
     entityId: number;
     active: boolean;
     image: HTMLImageElement;

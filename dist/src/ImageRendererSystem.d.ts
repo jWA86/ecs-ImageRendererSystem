@@ -1,22 +1,31 @@
 /// <reference types="gl-matrix" />
 import { System } from "ecs-framework";
 import { vec2 } from "gl-matrix";
-export { ImageRendererSystem };
-declare class ImageRendererSystem extends System {
-    context: CanvasRenderingContext2D;
-    constructor(context: CanvasRenderingContext2D);
-    process(args?: any[]): void;
-    execute(imgC: {
+export { IImageRendererSystemParams, ImageRendererSystem };
+interface IImageRendererSystemParams {
+    i: {
         image: HTMLImageElement;
-    }, sourcePositionC: {
+    };
+    sourceP: {
         sourcePosition: vec2;
-    }, sourceSizeC: {
+    };
+    sourceS: {
         sourceSize: vec2;
-    }, destPositionC: {
+    };
+    destP: {
         destPosition: vec2;
-    }, destSizeC: {
+    };
+    destS: {
         destSize: vec2;
-    }, rotationC: {
+    };
+    r: {
         rotation: number;
-    }): void;
+    };
+}
+declare class ImageRendererSystem extends System<IImageRendererSystemParams> {
+    context: CanvasRenderingContext2D;
+    protected _parameters: IImageRendererSystemParams;
+    constructor(context: CanvasRenderingContext2D);
+    process(...args: any[]): void;
+    execute(params: IImageRendererSystemParams): void;
 }

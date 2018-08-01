@@ -1,6 +1,6 @@
 {
   "name": "ecs-imagerenderersystem",
-  "version": "1.0.3",
+  "version": "1.0.0-alpha",
   "description": "simple system for rendering image for the ecs framework",
   "main": "./dist/index.js",
   "types": "./dist/src/entry.d.ts",
@@ -25,7 +25,7 @@
     "@types/gl-matrix": "^2.4.0",
     "@types/mocha": "^2.2.45",
     "chai": "^4.1.2",
-    "ecs-sortsystem": "^1.0.1",
+    "ecs-sortsystem": "^1.0.0-alpha",
     "es6-shim": "^0.35.3",
     "karma": "^1.7.1",
     "karma-chrome-launcher": "^2.2.0",
@@ -39,7 +39,7 @@
     "typescript": "^2.6.2"
   },
   "dependencies": {
-    "ecs-framework": "^0.4.11",
+    "ecs-framework": "^9.5.7-pre-alpha",
     "gl-matrix": "^2.4.0"
   }
 }
