@@ -1,4 +1,4 @@
-import { assert, expect } from "chai";
+import { expect } from "chai";
 import { ComponentFactory, interfaces } from "ecs-framework";
 import { SortSystem } from "ecs-sortsystem";
 import { vec2 } from "gl-matrix";
@@ -301,8 +301,8 @@ describe("imgRenderer", () => {
             expect(imgFactory.values[3].zIndex).to.equal(0);
 
             // should give [3, 2, 1, 0]
-            const sortSystem = new SortSystem("zIndex");
-            sortSystem.setParamSource("zIndex", imgFactory);
+            const sortSystem = new SortSystem();
+            sortSystem.setParamSource("paramName", imgFactory, "zIndex");
             sortSystem.process();
 
             expect(imgFactory.values[0].zIndex).to.equal(0);
@@ -312,8 +312,8 @@ describe("imgRenderer", () => {
         });
         it("should be able to draw images on top of each other based on the z index", () => {
             const layerFactory = new ComponentFactory<Layer>(5, new Layer(0, true, 0));
-            const sortSystem = new SortSystem("zIndex");
-            sortSystem.setParamSource("*", imgFactory);
+            const sortSystem = new SortSystem();
+            sortSystem.setParamSource("paramName", imgFactory, "zIndex");
             imgRendererSystem.setParamSource("*", imgFactory);
 
             // draw in increasing order

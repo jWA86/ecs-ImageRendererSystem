@@ -178,13 +178,13 @@ var ImageRendererSystem = /** @class */ (function (_super) {
     function ImageRendererSystem(context) {
         var _this = _super.call(this) || this;
         _this.context = context;
-        _this._parameters = {
-            destP: { destPosition: gl_matrix_1.vec2.create() },
-            destS: { destSize: gl_matrix_1.vec2.create() },
-            i: { image: new Image() },
-            r: { rotation: 0 },
-            sourceP: { sourcePosition: gl_matrix_1.vec2.create() },
-            sourceS: { sourceSize: gl_matrix_1.vec2.create() },
+        _this._defaultParameter = {
+            destPosition: gl_matrix_1.vec2.create(),
+            destSize: gl_matrix_1.vec2.create(),
+            image: new Image(),
+            rotation: 0,
+            sourcePosition: gl_matrix_1.vec2.create(),
+            sourceSize: gl_matrix_1.vec2.create(),
         };
         return _this;
     }
@@ -197,11 +197,11 @@ var ImageRendererSystem = /** @class */ (function (_super) {
         this.context.setTransform(1, 0, 0, 1, 0, 0);
     };
     ImageRendererSystem.prototype.execute = function (params) {
-        var imgCenterX = params.destS.destSize[0] / 2;
-        var imgCenterY = params.destS.destSize[1] / 2;
+        var imgCenterX = params.destSize[this._k.destSize][0] / 2;
+        var imgCenterY = params.destSize[this._k.destSize][1] / 2;
         this.context.setTransform(1, 0, 0, 1, imgCenterX, imgCenterY);
-        this.context.rotate(params.r.rotation);
-        this.context.drawImage(params.i.image, params.sourceP.sourcePosition[0], params.sourceP.sourcePosition[1], params.sourceS.sourceSize[0], params.sourceS.sourceSize[1], params.destP.destPosition[0] - imgCenterX, params.destP.destPosition[1] - imgCenterY, params.destS.destSize[0], params.destS.destSize[1]);
+        this.context.rotate(params.rotation[this._k.rotation]);
+        this.context.drawImage(params.image[this._k.image], params.sourcePosition[this._k.sourcePosition][0], params.sourcePosition[this._k.sourcePosition][1], params.sourceSize[this._k.sourceSize][0], params.sourceSize[this._k.sourceSize][1], params.destPosition[this._k.destPosition][0] - imgCenterX, params.destPosition[this._k.destPosition][1] - imgCenterY, params.destSize[this._k.destSize][0], params.destSize[this._k.destSize][1]);
     };
     return ImageRendererSystem;
 }(ecs_framework_1.System));
