@@ -7,7 +7,7 @@
 		exports["ecs-imagerenderersystem"] = factory(require("ecs-framework"), require("gl-matrix"));
 	else
 		root["ecs-imagerenderersystem"] = factory(root["ecs-framework"], root["gl-matrix"]);
-})(this, function(__WEBPACK_EXTERNAL_MODULE_5__, __WEBPACK_EXTERNAL_MODULE_6__) {
+})(this, function(__WEBPACK_EXTERNAL_MODULE_0__, __WEBPACK_EXTERNAL_MODULE_8__) {
 return /******/ (function(modules) { // webpackBootstrap
 /******/ 	// The module cache
 /******/ 	var installedModules = {};
@@ -70,33 +70,43 @@ return /******/ (function(modules) { // webpackBootstrap
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 0);
+/******/ 	return __webpack_require__(__webpack_require__.s = 1);
 /******/ })
 /************************************************************************/
 /******/ ([
 /* 0 */
-/***/ (function(module, exports, __webpack_require__) {
+/***/ (function(module, exports) {
 
-module.exports = __webpack_require__(1);
-
+module.exports = __WEBPACK_EXTERNAL_MODULE_0__;
 
 /***/ }),
 /* 1 */
 /***/ (function(module, exports, __webpack_require__) {
 
-"use strict";
-
-Object.defineProperty(exports, "__esModule", { value: true });
-var asset_1 = __webpack_require__(2);
-exports.ImageAtlas = asset_1.ImageAtlas;
-var ImageComponent_1 = __webpack_require__(3);
-exports.ImageComponent = ImageComponent_1.ImageComponent;
-var ImageRendererSystem_1 = __webpack_require__(4);
-exports.ImageRendererSystem = ImageRendererSystem_1.ImageRendererSystem;
+module.exports = __webpack_require__(2);
 
 
 /***/ }),
 /* 2 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", { value: true });
+var asset_1 = __webpack_require__(3);
+exports.ImageAtlas = asset_1.ImageAtlas;
+var CanvasResizeSystem_1 = __webpack_require__(4);
+exports.CanvasResizeSystem = CanvasResizeSystem_1.CanvasResizeSystem;
+var ClearCanvasSystem_1 = __webpack_require__(5);
+exports.ClearCanvasSystem = ClearCanvasSystem_1.ClearCanvasSystem;
+var ImageComponent_1 = __webpack_require__(6);
+exports.ImageComponent = ImageComponent_1.ImageComponent;
+var ImageRendererSystem_1 = __webpack_require__(7);
+exports.ImageRendererSystem = ImageRendererSystem_1.ImageRendererSystem;
+
+
+/***/ }),
+/* 3 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -129,7 +139,88 @@ exports.ImageAtlas = ImageAtlas;
 
 
 /***/ }),
-/* 3 */
+/* 4 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = Object.setPrototypeOf ||
+        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
+Object.defineProperty(exports, "__esModule", { value: true });
+var ecs_framework_1 = __webpack_require__(0);
+/** Resize the canvas when the client size change */
+var CanvasResizeSystem = /** @class */ (function (_super) {
+    __extends(CanvasResizeSystem, _super);
+    function CanvasResizeSystem(canvas) {
+        var _this = _super.call(this) || this;
+        _this.canvas = canvas;
+        _this.active = true;
+        _this._defaultParameter = {};
+        return _this;
+    }
+    CanvasResizeSystem.prototype.process = function () {
+        var canvas = this.canvas;
+        var cssToRealPixels = window.devicePixelRatio || 1;
+        var displayWidth = Math.floor(canvas.clientWidth * cssToRealPixels);
+        var displayHeight = Math.floor(canvas.clientHeight * cssToRealPixels);
+        if (canvas.width !== displayWidth || canvas.height !== displayHeight) {
+            canvas.width = displayWidth;
+            canvas.height = displayHeight;
+        }
+    };
+    CanvasResizeSystem.prototype.execute = function () { };
+    return CanvasResizeSystem;
+}(ecs_framework_1.System));
+exports.CanvasResizeSystem = CanvasResizeSystem;
+
+
+/***/ }),
+/* 5 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = Object.setPrototypeOf ||
+        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
+Object.defineProperty(exports, "__esModule", { value: true });
+var ecs_framework_1 = __webpack_require__(0);
+var ClearCanvasSystem = /** @class */ (function (_super) {
+    __extends(ClearCanvasSystem, _super);
+    function ClearCanvasSystem(context, canvas) {
+        var _this = _super.call(this) || this;
+        _this.context = context;
+        _this.canvas = canvas;
+        _this.active = true;
+        _this._defaultParameter = {};
+        return _this;
+    }
+    ClearCanvasSystem.prototype.process = function () {
+        this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    };
+    ClearCanvasSystem.prototype.execute = function () { };
+    return ClearCanvasSystem;
+}(ecs_framework_1.System));
+exports.ClearCanvasSystem = ClearCanvasSystem;
+
+
+/***/ }),
+/* 6 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -155,7 +246,7 @@ exports.ImageComponent = ImageComponent;
 
 
 /***/ }),
-/* 4 */
+/* 7 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -171,8 +262,8 @@ var __extends = (this && this.__extends) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-var ecs_framework_1 = __webpack_require__(5);
-var gl_matrix_1 = __webpack_require__(6);
+var ecs_framework_1 = __webpack_require__(0);
+var gl_matrix_1 = __webpack_require__(8);
 var ImageRendererSystem = /** @class */ (function (_super) {
     __extends(ImageRendererSystem, _super);
     function ImageRendererSystem(context) {
@@ -209,16 +300,10 @@ exports.ImageRendererSystem = ImageRendererSystem;
 
 
 /***/ }),
-/* 5 */
+/* 8 */
 /***/ (function(module, exports) {
 
-module.exports = __WEBPACK_EXTERNAL_MODULE_5__;
-
-/***/ }),
-/* 6 */
-/***/ (function(module, exports) {
-
-module.exports = __WEBPACK_EXTERNAL_MODULE_6__;
+module.exports = __WEBPACK_EXTERNAL_MODULE_8__;
 
 /***/ })
 /******/ ]);
