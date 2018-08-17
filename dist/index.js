@@ -7,7 +7,7 @@
 		exports["ecs-imagerenderersystem"] = factory(require("ecs-framework"), require("gl-matrix"));
 	else
 		root["ecs-imagerenderersystem"] = factory(root["ecs-framework"], root["gl-matrix"]);
-})(this, function(__WEBPACK_EXTERNAL_MODULE_0__, __WEBPACK_EXTERNAL_MODULE_8__) {
+})(this, function(__WEBPACK_EXTERNAL_MODULE_0__, __WEBPACK_EXTERNAL_MODULE_1__) {
 return /******/ (function(modules) { // webpackBootstrap
 /******/ 	// The module cache
 /******/ 	var installedModules = {};
@@ -70,7 +70,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 1);
+/******/ 	return __webpack_require__(__webpack_require__.s = 2);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -81,32 +81,38 @@ module.exports = __WEBPACK_EXTERNAL_MODULE_0__;
 
 /***/ }),
 /* 1 */
-/***/ (function(module, exports, __webpack_require__) {
+/***/ (function(module, exports) {
 
-module.exports = __webpack_require__(2);
-
+module.exports = __WEBPACK_EXTERNAL_MODULE_1__;
 
 /***/ }),
 /* 2 */
 /***/ (function(module, exports, __webpack_require__) {
 
-"use strict";
-
-Object.defineProperty(exports, "__esModule", { value: true });
-var asset_1 = __webpack_require__(3);
-exports.ImageAtlas = asset_1.ImageAtlas;
-var CanvasResizeSystem_1 = __webpack_require__(4);
-exports.CanvasResizeSystem = CanvasResizeSystem_1.CanvasResizeSystem;
-var ClearCanvasSystem_1 = __webpack_require__(5);
-exports.ClearCanvasSystem = ClearCanvasSystem_1.ClearCanvasSystem;
-var ImageComponent_1 = __webpack_require__(6);
-exports.ImageComponent = ImageComponent_1.ImageComponent;
-var ImageRendererSystem_1 = __webpack_require__(7);
-exports.ImageRendererSystem = ImageRendererSystem_1.ImageRendererSystem;
+module.exports = __webpack_require__(3);
 
 
 /***/ }),
 /* 3 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", { value: true });
+var asset_1 = __webpack_require__(4);
+exports.ImageAtlas = asset_1.ImageAtlas;
+var CanvasResizeSystem_1 = __webpack_require__(5);
+exports.CanvasResizeSystem = CanvasResizeSystem_1.CanvasResizeSystem;
+var ClearCanvasSystem_1 = __webpack_require__(6);
+exports.ClearCanvasSystem = ClearCanvasSystem_1.ClearCanvasSystem;
+var ImageComponent_1 = __webpack_require__(7);
+exports.ImageComponent = ImageComponent_1.ImageComponent;
+var ImageRendererSystem_1 = __webpack_require__(8);
+exports.ImageRendererSystem = ImageRendererSystem_1.ImageRendererSystem;
+
+
+/***/ }),
+/* 4 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -139,7 +145,7 @@ exports.ImageAtlas = ImageAtlas;
 
 
 /***/ }),
-/* 4 */
+/* 5 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -183,7 +189,7 @@ exports.CanvasResizeSystem = CanvasResizeSystem;
 
 
 /***/ }),
-/* 5 */
+/* 6 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -220,25 +226,30 @@ exports.ClearCanvasSystem = ClearCanvasSystem;
 
 
 /***/ }),
-/* 6 */
+/* 7 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 Object.defineProperty(exports, "__esModule", { value: true });
+var gl_matrix_1 = __webpack_require__(1);
 var ImageComponent = /** @class */ (function () {
-    function ImageComponent(entityId, active, image, sourcePosition, sourceSize, destPosition, destSize, rotation, zIndex) {
-        if (rotation === void 0) { rotation = 0; }
-        if (zIndex === void 0) { zIndex = 0; }
-        this.entityId = entityId;
-        this.active = active;
+    function ImageComponent(image, dimension, sourcePosition, sourceSize, center, transformation, zIndex) {
+        if (dimension === void 0) { dimension = gl_matrix_1.vec3.create(); }
+        if (sourcePosition === void 0) { sourcePosition = gl_matrix_1.vec2.create(); }
+        if (sourceSize === void 0) { sourceSize = gl_matrix_1.vec2.create(); }
+        if (center === void 0) { center = gl_matrix_1.vec3.create(); }
+        if (transformation === void 0) { transformation = gl_matrix_1.mat4.create(); }
+        if (zIndex === void 0) { zIndex = 1; }
         this.image = image;
+        this.dimension = dimension;
         this.sourcePosition = sourcePosition;
         this.sourceSize = sourceSize;
-        this.destPosition = destPosition;
-        this.destSize = destSize;
-        this.rotation = rotation;
+        this.center = center;
+        this.transformation = transformation;
         this.zIndex = zIndex;
+        this.entityId = 0;
+        this.active = true;
     }
     return ImageComponent;
 }());
@@ -246,7 +257,7 @@ exports.ImageComponent = ImageComponent;
 
 
 /***/ }),
-/* 7 */
+/* 8 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -263,19 +274,20 @@ var __extends = (this && this.__extends) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
 var ecs_framework_1 = __webpack_require__(0);
-var gl_matrix_1 = __webpack_require__(8);
+var gl_matrix_1 = __webpack_require__(1);
 var ImageRendererSystem = /** @class */ (function (_super) {
     __extends(ImageRendererSystem, _super);
     function ImageRendererSystem(context) {
         var _this = _super.call(this) || this;
         _this.context = context;
         _this._defaultParameter = {
-            destPosition: gl_matrix_1.vec2.create(),
-            destSize: gl_matrix_1.vec2.create(),
+            center: gl_matrix_1.vec3.create(),
+            dimension: gl_matrix_1.vec3.create(),
             image: new Image(),
-            rotation: 0,
             sourcePosition: gl_matrix_1.vec2.create(),
             sourceSize: gl_matrix_1.vec2.create(),
+            transformation: gl_matrix_1.mat4.create(),
+            zIndex: 1,
         };
         return _this;
     }
@@ -288,22 +300,20 @@ var ImageRendererSystem = /** @class */ (function (_super) {
         this.context.setTransform(1, 0, 0, 1, 0, 0);
     };
     ImageRendererSystem.prototype.execute = function (params) {
-        var imgCenterX = params.destSize[this._k.destSize][0] / 2;
-        var imgCenterY = params.destSize[this._k.destSize][1] / 2;
-        this.context.setTransform(1, 0, 0, 1, imgCenterX, imgCenterY);
-        this.context.rotate(params.rotation[this._k.rotation]);
-        this.context.drawImage(params.image[this._k.image], params.sourcePosition[this._k.sourcePosition][0], params.sourcePosition[this._k.sourcePosition][1], params.sourceSize[this._k.sourceSize][0], params.sourceSize[this._k.sourceSize][1], params.destPosition[this._k.destPosition][0] - imgCenterX, params.destPosition[this._k.destPosition][1] - imgCenterY, params.destSize[this._k.destSize][0], params.destSize[this._k.destSize][1]);
+        // // a	m11 : glM : m00 [0]
+        // // b	m12 : glM : m01 [1]
+        // // c	m21 : glM : m10 [4]
+        // // d	m22 : glM : m11 [5]
+        // // e	m41 : glM : m30 [12]
+        // // f	m42 : glM : m31 [13]
+        var t = params.transformation[this._k.transformation];
+        this.context.setTransform(t[0], t[1], t[4], t[5], t[12], t[13]);
+        this.context.drawImage(params.image[this._k.image], params.sourcePosition[this._k.sourcePosition][0], params.sourcePosition[this._k.sourcePosition][1], params.sourceSize[this._k.sourceSize][0], params.sourceSize[this._k.sourceSize][1], 0, 0, params.sourceSize[this._k.sourceSize][0], params.sourceSize[this._k.sourceSize][1]);
     };
     return ImageRendererSystem;
 }(ecs_framework_1.System));
 exports.ImageRendererSystem = ImageRendererSystem;
 
-
-/***/ }),
-/* 8 */
-/***/ (function(module, exports) {
-
-module.exports = __WEBPACK_EXTERNAL_MODULE_8__;
 
 /***/ })
 /******/ ]);
