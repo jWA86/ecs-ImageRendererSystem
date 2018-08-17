@@ -1,7 +1,7 @@
 import { expect } from "chai";
 import { ComponentFactory, interfaces } from "ecs-framework";
 import { SortSystem } from "ecs-sortsystem";
-import { vec2 } from "gl-matrix";
+import { mat4, vec2, vec3 } from "gl-matrix";
 import "mocha";
 import { ImageAtlas } from "../src/asset";
 import { ImageComponent } from "../src/ImageComponent";
@@ -22,7 +22,7 @@ describe("imgRenderer", () => {
 
     let imageAtlas = new ImageAtlas();
 
-    const defaultImageComponent: ImageComponent = new ImageComponent(0, true, new Image(), vec2.create(), vec2.create(), vec2.create(), vec2.create(), 0, 0);
+    const defaultImageComponent: ImageComponent = new ImageComponent(new Image());
 
     beforeEach(() => {
         document.body.innerHTML = "";
@@ -93,18 +93,15 @@ describe("imgRenderer", () => {
             // });
         });
         describe("image component", () => {
-            it("should contain a reference to the image, the source position, source size", (done) => {
+            it("should contain a reference to the image, the source position, source size and a transformation matrix", (done) => {
                 const test = (imgAtlas) => {
-                    const spComponent = new ImageComponent(1, true, imgAtlas.image, vec2.fromValues(1, 1), vec2.fromValues(1, 1), vec2.fromValues(1, 1), vec2.fromValues(1, 1), 0);
+                    const spComponent = new ImageComponent(imgAtlas.image);
                     expect(spComponent.image).to.be.instanceOf(HTMLImageElement);
-                    expect(spComponent.sourcePosition[0]).to.equal(1);
-                    expect(spComponent.sourcePosition[1]).to.equal(1);
-                    expect(spComponent.sourceSize[0]).to.equal(1);
-                    expect(spComponent.sourceSize[1]).to.equal(1);
-                    expect(spComponent.destSize[0]).to.equal(1);
-                    expect(spComponent.destSize[1]).to.equal(1);
-                    expect(spComponent.destPosition[0]).to.equal(1);
-                    expect(spComponent.destPosition[1]).to.equal(1);
+                    expect(spComponent.sourcePosition[0]).to.equal(0);
+                    expect(spComponent.sourcePosition[1]).to.equal(0);
+                    expect(spComponent.sourceSize[0]).to.equal(0);
+                    expect(spComponent.sourceSize[1]).to.equal(0);
+                    expect(spComponent.transformation[15]).to.not.equal(undefined);
                     done();
                 };
                 imageAtlas.loadImg(imgUrl).then((res) => {
@@ -128,14 +125,16 @@ describe("imgRenderer", () => {
             constructor(public entityId: number, public active: boolean, public zIndex: number) { }
         }
 
-        beforeEach(() => {
+        beforeEach((done) => {
             canvas = document.getElementById(canvasId) as HTMLCanvasElement;
             ctx = canvas.getContext("2d");
 
             imgFactory = new ComponentFactory<ImageComponent>(5, defaultImageComponent);
 
-            imageAtlas.loadImg(imgUrl);
             imgRendererSystem = new ImageRendererSystem(ctx);
+            imageAtlas.loadImg(imgUrl).then((res) => {
+                done();
+            });
         });
         it("should be able to draw a image component at a given position", () => {
             // Drawing at (100, 100)
@@ -146,8 +145,9 @@ describe("imgRenderer", () => {
             comp.image = imageAtlas.image;
             comp.sourcePosition = vec2.fromValues(0, 0);
             comp.sourceSize = vec2.fromValues(imageAtlas.image.width, imageAtlas.image.height);
-            comp.destPosition = vec2.fromValues(posX, posY);
-            comp.destSize = vec2.fromValues(imageAtlas.image.width, imageAtlas.image.height);
+
+            setCenterAndDimension(comp);
+            mat4.translate(comp.transformation, comp.transformation, [posX, posY, 1]);
 
             imgRendererSystem.setParamSource("*", imgFactory);
             imgRendererSystem.process();
@@ -175,8 +175,8 @@ describe("imgRenderer", () => {
             // draw only the last 25 pixel with of the image
             comp.sourcePosition = vec2.fromValues(srcPosX, srcPosY);
             comp.sourceSize = vec2.fromValues(srcWidth, srcHeight);
-            comp.destPosition = vec2.fromValues(0, 0);
-            comp.destSize = vec2.fromValues(srcWidth, srcHeight);
+            // set the center so that the top left corner of the image is at 0,0
+            setCenterAndDimension(comp);
 
             imgRendererSystem.setParamSource("*", imgFactory);
             imgRendererSystem.process();
@@ -202,8 +202,8 @@ describe("imgRenderer", () => {
 
             comp.sourcePosition = vec2.fromValues(0, 0);
             comp.sourceSize = vec2.fromValues(imageAtlas.image.width, imageAtlas.image.height);
-            comp.destPosition = vec2.fromValues(0, 0);
-            comp.destSize = vec2.fromValues(destWidth, destHeight);
+            setCenterAndDimension(comp);
+            mat4.scale(comp.transformation, comp.transformation, [0.5, 0.5, 1]);
 
             imgRendererSystem.setParamSource("*", imgFactory);
             imgRendererSystem.process();
@@ -219,6 +219,8 @@ describe("imgRenderer", () => {
             refImgPixelColorChecking(bottomLeftCorner, 255, 0, 255, 255);
         });
         it("should be able to rotate the image from its center by a given angle (radians) clockwise", () => {
+            // rotation is done outside the system,
+            // the imagerander just render the image based on the transformation matrix
             const rotation = 90 * Math.PI / 180;
 
             const comp = imgFactory.create(1, true);
@@ -226,9 +228,10 @@ describe("imgRenderer", () => {
 
             comp.sourcePosition = vec2.fromValues(0, 0);
             comp.sourceSize = vec2.fromValues(imageAtlas.image.width, imageAtlas.image.height);
-            comp.destPosition = vec2.fromValues(0, 0);
-            comp.destSize = vec2.fromValues(imageAtlas.image.width, imageAtlas.image.height);
-            comp.rotation = rotation;
+
+            setCenterAndDimension(comp);
+
+            rotateByCenter(comp, rotation);
 
             imgRendererSystem.setParamSource("*", imgFactory);
             imgRendererSystem.process();
@@ -258,16 +261,19 @@ describe("imgRenderer", () => {
             comp1.image = imageAtlas.image;
             comp1.sourcePosition = vec2.fromValues(imageAtlas.image.width - 25, 0);
             comp1.sourceSize = vec2.fromValues(25, imageAtlas.image.height);
-            comp1.destPosition = vec2.fromValues(0, 0);
-            comp1.destSize = vec2.fromValues(25, imageAtlas.image.height);
-            comp1.rotation = Math.PI; // 180 degree
+            setCenterAndDimension(comp1);
+
+            const radian = Math.PI; // 180 degree
+            rotateByCenter(comp1, radian);
 
             const comp2 = imgFactory.create(2, true);
             comp2.image = imageAtlas.image;
             comp2.sourcePosition = vec2.fromValues(0, 0);
             comp2.sourceSize = vec2.fromValues(25, 25);
-            comp2.destPosition = vec2.fromValues(100, 100);
-            comp2.destSize = vec2.fromValues(25, 25);
+
+            setCenterAndDimension(comp2);
+
+            mat4.translate(comp2.transformation, comp2.transformation, [100, 100, 0]);
 
             imgRendererSystem.setParamSource("*", imgFactory);
             imgRendererSystem.process();
@@ -322,8 +328,7 @@ describe("imgRenderer", () => {
             comp1.image = imageAtlas.image;
             comp1.sourcePosition = vec2.fromValues(0, 0);
             comp1.sourceSize = vec2.fromValues(25, 25);
-            comp1.destPosition = vec2.fromValues(0, 0);
-            comp1.destSize = vec2.fromValues(25, 25);
+            setCenterAndDimension(comp1);
             comp1.zIndex = 0;
 
             // green
@@ -331,8 +336,8 @@ describe("imgRenderer", () => {
             comp2.image = imageAtlas.image;
             comp2.sourcePosition = vec2.fromValues(imageAtlas.image.width - 25, 0);
             comp2.sourceSize = vec2.fromValues(25, 25);
-            comp2.destPosition = vec2.fromValues(5, 5);
-            comp2.destSize = vec2.fromValues(25, 25);
+            setCenterAndDimension(comp2);
+            mat4.translate(comp2.transformation, comp2.transformation, [5, 5, 0]);
             comp2.zIndex = 3;
 
             // blue
@@ -340,8 +345,9 @@ describe("imgRenderer", () => {
             comp3.image = imageAtlas.image;
             comp3.sourcePosition = vec2.fromValues(imageAtlas.image.width - 25, imageAtlas.image.height - 25);
             comp3.sourceSize = vec2.fromValues(25, 25);
-            comp3.destPosition = vec2.fromValues(10, 10);
-            comp3.destSize = vec2.fromValues(25, 25);
+
+            setCenterAndDimension(comp3);
+            mat4.translate(comp3.transformation, comp3.transformation, [10, 10, 0]);
             comp3.zIndex = 1;
 
             // purple
@@ -349,8 +355,9 @@ describe("imgRenderer", () => {
             comp4.image = imageAtlas.image;
             comp4.sourcePosition = vec2.fromValues(0, imageAtlas.image.height - 25);
             comp4.sourceSize = vec2.fromValues(25, 25);
-            comp4.destPosition = vec2.fromValues(15, 15);
-            comp4.destSize = vec2.fromValues(25, 25);
+
+            setCenterAndDimension(comp4);
+            mat4.translate(comp4.transformation, comp4.transformation, [15, 15, 0]);
             comp4.zIndex = 2;
 
             sortSystem.process();
@@ -380,16 +387,16 @@ describe("imgRenderer", () => {
                 comp1.image = imageAtlas.image;
                 comp1.sourcePosition = vec2.fromValues(imageAtlas.image.width - 25, imageAtlas.image.width - 25);
                 comp1.sourceSize = vec2.fromValues(25, 25);
-                comp1.destPosition = vec2.fromValues(25, 25);
-                comp1.destSize = vec2.fromValues(25, 25);
+
+                setCenterAndDimension(comp1);
+                mat4.translate(comp1.transformation, comp1.transformation, [25, 25, 1]);
                 // comp1.zIndex = 0;
 
                 const comp2 = imgFactory.create(2, true);
                 comp2.image = transparentHolder.image;
                 comp2.sourcePosition = vec2.fromValues(0, 0);
                 comp2.sourceSize = vec2.fromValues(transparentHolder.image.width, transparentHolder.image.height);
-                comp2.destPosition = vec2.fromValues(0, 0);
-                comp2.destSize = vec2.fromValues(transparentHolder.image.width, transparentHolder.image.height);
+                setCenterAndDimension(comp2);
                 // comp2.zIndex = 1;
 
                 imgRendererSystem.setParamSource("*", imgFactory);
@@ -417,16 +424,15 @@ describe("imgRenderer", () => {
                 comp1.image = imageAtlas.image;
                 comp1.sourcePosition = vec2.fromValues(imageAtlas.image.width - 25, imageAtlas.image.width - 25);
                 comp1.sourceSize = vec2.fromValues(25, 25);
-                comp1.destPosition = vec2.fromValues(25, 25);
-                comp1.destSize = vec2.fromValues(25, 25);
+                setCenterAndDimension(comp1);
+                mat4.translate(comp1.transformation, comp1.transformation, [25, 25, 1]);
                 // comp1.zIndex = 0;
 
                 const comp2 = imgFactory.create(2, true);
                 comp2.image = translucidHolder.image;
                 comp2.sourcePosition = vec2.fromValues(0, 0);
                 comp2.sourceSize = vec2.fromValues(translucidHolder.image.width, translucidHolder.image.height);
-                comp2.destPosition = vec2.fromValues(0, 0);
-                comp2.destSize = vec2.fromValues(translucidHolder.image.width, translucidHolder.image.height);
+                setCenterAndDimension(comp2);
                 // comp2.zIndex = 1;
 
                 imgRendererSystem.setParamSource("*", imgFactory);
@@ -456,3 +462,18 @@ describe("imgRenderer", () => {
         expect(pixel.data[3]).to.equal(a);
     };
 });
+function setCenterAndDimension(comp: ImageComponent, center: vec3 = vec3.create()) {
+    comp.center = vec3.fromValues(center[0] + (comp.sourceSize[0] / 2), center[1] + (comp.sourceSize[1] / 2), 0);
+    comp.dimension = vec3.fromValues(comp.center[0] + comp.sourceSize[0] / 2, comp.center[1] + comp.sourceSize[1] / 2, 0);
+}
+
+function rotateByCenter(comp1: ImageComponent, rotation: number) {
+    // save the inital pos
+    const initPos = mat4.getTranslation(vec3.create(), comp1.transformation);
+    // translate to the center of the image to rotate it by its center
+    mat4.translate(comp1.transformation, comp1.transformation, comp1.center);
+    // rotate
+    mat4.rotateZ(comp1.transformation, comp1.transformation, rotation);
+    // translate back to the initialPosition
+    mat4.translate(comp1.transformation, comp1.transformation, vec3.sub(vec3.create(), initPos, comp1.center));
+}

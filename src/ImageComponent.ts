@@ -1,19 +1,21 @@
 import { interfaces } from "ecs-framework";
-import { vec2 } from "gl-matrix";
-import { ImageAtlas } from "./asset";
+import { mat4, vec2, vec3 } from "gl-matrix";
 
-export { ImageComponent };
+export { ImageComponent, IImageComponent };
 
 interface IImageComponent extends ImageComponent {
     image: HTMLImageElement;
+    center: vec3;
+    dimension: vec3;
     sourcePosition: vec2;
     sourceSize: vec2;
-    destPosition: vec2;
-    destSize: vec2;
-    rotation: number;
+    transformation: mat4;
     zIndex: number;
 }
 
-class ImageComponent implements interfaces.IComponent {
-    constructor(public entityId: number, public active: boolean, public image: HTMLImageElement, public sourcePosition: vec2, public sourceSize: vec2, public destPosition: vec2, public destSize: vec2, public rotation: number = 0, public zIndex: number = 0) { }
+class ImageComponent implements interfaces.IComponent, IImageComponent {
+    public entityId = 0;
+    public active = true;
+
+    constructor(public image: HTMLImageElement, public dimension: vec3 = vec3.create(), public sourcePosition: vec2 = vec2.create(), public sourceSize: vec2 = vec2.create(), public center: vec3 = vec3.create(), public transformation: mat4 = mat4.create(), public zIndex = 1) { }
 }
