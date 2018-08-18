@@ -234,14 +234,14 @@ exports.ClearCanvasSystem = ClearCanvasSystem;
 Object.defineProperty(exports, "__esModule", { value: true });
 var gl_matrix_1 = __webpack_require__(1);
 var ImageComponent = /** @class */ (function () {
-    function ImageComponent(image, dimension, sourcePosition, sourceSize, center, transformation, zIndex) {
+    function ImageComponent(imageId, dimension, sourcePosition, sourceSize, center, transformation, zIndex) {
         if (dimension === void 0) { dimension = gl_matrix_1.vec3.create(); }
         if (sourcePosition === void 0) { sourcePosition = gl_matrix_1.vec2.create(); }
         if (sourceSize === void 0) { sourceSize = gl_matrix_1.vec2.create(); }
         if (center === void 0) { center = gl_matrix_1.vec3.create(); }
         if (transformation === void 0) { transformation = gl_matrix_1.mat4.create(); }
         if (zIndex === void 0) { zIndex = 1; }
-        this.image = image;
+        this.imageId = imageId;
         this.dimension = dimension;
         this.sourcePosition = sourcePosition;
         this.sourceSize = sourceSize;
@@ -277,13 +277,14 @@ var ecs_framework_1 = __webpack_require__(0);
 var gl_matrix_1 = __webpack_require__(1);
 var ImageRendererSystem = /** @class */ (function (_super) {
     __extends(ImageRendererSystem, _super);
-    function ImageRendererSystem(context) {
+    function ImageRendererSystem(context, imgAtlasManager) {
         var _this = _super.call(this) || this;
         _this.context = context;
+        _this.imgAtlasManager = imgAtlasManager;
         _this._defaultParameter = {
             center: gl_matrix_1.vec3.create(),
             dimension: gl_matrix_1.vec3.create(),
-            image: new Image(),
+            imageAtlasId: 0,
             sourcePosition: gl_matrix_1.vec2.create(),
             sourceSize: gl_matrix_1.vec2.create(),
             transformation: gl_matrix_1.mat4.create(),
@@ -308,7 +309,12 @@ var ImageRendererSystem = /** @class */ (function (_super) {
         // // f	m42 : glM : m31 [13]
         var t = params.transformation[this._k.transformation];
         this.context.setTransform(t[0], t[1], t[4], t[5], t[12], t[13]);
-        this.context.drawImage(params.image[this._k.image], params.sourcePosition[this._k.sourcePosition][0], params.sourcePosition[this._k.sourcePosition][1], params.sourceSize[this._k.sourceSize][0], params.sourceSize[this._k.sourceSize][1], 0, 0, params.sourceSize[this._k.sourceSize][0], params.sourceSize[this._k.sourceSize][1]);
+        var atlas = this.imgAtlasManager.get(params.imageAtlasId[this._k.imageAtlasId]);
+        if (atlas === undefined) {
+            return;
+        }
+        var image = atlas.image;
+        this.context.drawImage(image, params.sourcePosition[this._k.sourcePosition][0], params.sourcePosition[this._k.sourcePosition][1], params.sourceSize[this._k.sourceSize][0], params.sourceSize[this._k.sourceSize][1], 0, 0, params.sourceSize[this._k.sourceSize][0], params.sourceSize[this._k.sourceSize][1]);
     };
     return ImageRendererSystem;
 }(ecs_framework_1.System));
