@@ -1,6 +1,7 @@
 import { expect } from "chai";
 import { ComponentFactory, interfaces } from "ecs-framework";
 import { SortSystem } from "ecs-sortsystem";
+import { FastIterationMap } from "FastIterationMap";
 import { mat4, vec2, vec3 } from "gl-matrix";
 import "mocha";
 import { ImageAtlas } from "../src/asset";
@@ -20,31 +21,37 @@ describe("imgRenderer", () => {
     let mockHtml = '<canvas id="canvas" width="800" height="600"></canvas>';
     document.body.innerHTML = mockHtml;
 
-    let imageAtlas = new ImageAtlas();
+    let imageManager: FastIterationMap<number, ImageAtlas>;
+    // let imageAtlas = new ImageAtlas();
 
-    const defaultImageComponent: ImageComponent = new ImageComponent(new Image());
+    const defaultImageComponent: ImageComponent = new ImageComponent(1);
 
     beforeEach(() => {
         document.body.innerHTML = "";
-        imageAtlas = new ImageAtlas();
         mockHtml = '<canvas id="canvas" width="800" height="600"></canvas>';
         document.body.innerHTML = mockHtml;
+
+        // let imageAtlas = new ImageAtlas();
+        imageManager = new FastIterationMap<number, ImageAtlas>();
+
     });
 
     describe("Image initialisation", () => {
 
         it("should allocate a new Image element at contruction", () => {
+            const imageAtlas = new ImageAtlas();
             expect(imageAtlas.image).to.be.instanceOf(HTMLImageElement);
         });
         it("should be able to notify when the image is loaded", (done) => {
-            imageAtlas.loadImg(imgUrl).then((res) => {
+
+            new ImageAtlas().loadImg(imgUrl).then((res) => {
                 done();
             }).catch((res) => {
                 done(new Error("failed to load"));
             });
         });
         it("should be able to notify when the image failed to load", (done) => {
-            imageAtlas.loadImg("nonExistingUrl.jpg").then((res) => {
+            new ImageAtlas().loadImg("nonExistingUrl.jpg").then((res) => {
                 done(new Error("should failed to load but succeed"));
             }).catch((res) => {
                 done();
@@ -65,8 +72,9 @@ describe("imgRenderer", () => {
                 expect(data.data[i]).to.be.equal(0);
             }
 
-            imageAtlas.loadImg(greyImgUrl).then((res) => {
-                ctx.drawImage(imageAtlas.image, 0, 0);
+            const imgAtlas = new ImageAtlas();
+            imgAtlas.loadImg(greyImgUrl).then((res) => {
+                ctx.drawImage(imgAtlas.image, 0, 0);
                 data = ctx.getImageData(0, 0, 10, 10);
                 // if other value than 0 is found then the image is considered drawn
                 for (let i = 0; i < data.data.length; ++i) {
@@ -93,22 +101,20 @@ describe("imgRenderer", () => {
             // });
         });
         describe("image component", () => {
-            it("should contain a reference to the image, the source position, source size and a transformation matrix", (done) => {
-                const test = (imgAtlas) => {
-                    const spComponent = new ImageComponent(imgAtlas.image);
-                    expect(spComponent.image).to.be.instanceOf(HTMLImageElement);
+            it("should contain a reference to the image, the source position, source size and a transformation matrix", () => {
+                    const spComponent = new ImageComponent(1);
+                    expect(spComponent.imageId).to.equal(1);
                     expect(spComponent.sourcePosition[0]).to.equal(0);
                     expect(spComponent.sourcePosition[1]).to.equal(0);
                     expect(spComponent.sourceSize[0]).to.equal(0);
                     expect(spComponent.sourceSize[1]).to.equal(0);
                     expect(spComponent.transformation[15]).to.not.equal(undefined);
-                    done();
-                };
-                imageAtlas.loadImg(imgUrl).then((res) => {
-                    test(imageAtlas);
-                }).catch((res) => {
-                    done(new Error(res));
-                });
+
+                // imageAtlas.loadImg(imgUrl).then((res) => {
+                //     test(imageAtlas);
+                // }).catch((res) => {
+                //     done(new Error(res));
+                // });
             });
         });
     });
@@ -119,7 +125,7 @@ describe("imgRenderer", () => {
 
         let imgFactory = new ComponentFactory<ImageComponent>(5, defaultImageComponent);
 
-        let imgRendererSystem = new ImageRendererSystem(ctx);
+        let imgRendererSystem = new ImageRendererSystem(ctx, imageManager);
 
         class Layer implements interfaces.IComponent {
             constructor(public entityId: number, public active: boolean, public zIndex: number) { }
@@ -131,8 +137,10 @@ describe("imgRenderer", () => {
 
             imgFactory = new ComponentFactory<ImageComponent>(5, defaultImageComponent);
 
-            imgRendererSystem = new ImageRendererSystem(ctx);
-            imageAtlas.loadImg(imgUrl).then((res) => {
+            imgRendererSystem = new ImageRendererSystem(ctx, imageManager);
+            const imgAtlas = new ImageAtlas();
+            imageManager.set(1, imgAtlas);
+            imgAtlas.loadImg(imgUrl).then((res) => {
                 done();
             });
         });
@@ -142,21 +150,24 @@ describe("imgRenderer", () => {
             const posY = 100;
 
             const comp = imgFactory.create(1, true);
-            comp.image = imageAtlas.image;
+            comp.imageId = 1;
             comp.sourcePosition = vec2.fromValues(0, 0);
-            comp.sourceSize = vec2.fromValues(imageAtlas.image.width, imageAtlas.image.height);
+
+            const imgAtlas = imgRendererSystem.imgAtlasManager.get(comp.imageId);
+            comp.sourceSize = vec2.fromValues(imgAtlas.image.width, imgAtlas.image.height);
 
             setCenterAndDimension(comp);
             mat4.translate(comp.transformation, comp.transformation, [posX, posY, 1]);
 
             imgRendererSystem.setParamSource("*", imgFactory);
+            imgRendererSystem.setParamSource("imageAtlasId", imgFactory, "imageId");
             imgRendererSystem.process();
 
             // corner of the image should start at (poxX, posY)
             const topLeftCorner = ctx.getImageData(posX, posY, 1, 1);
-            const topRightCorner = ctx.getImageData(imageAtlas.image.width - 2 + posX, posY, 1, 1);
-            const bottomRightCorner = ctx.getImageData(imageAtlas.image.width - 2 + posX, imageAtlas.image.height - 2 + posY, 1, 1);
-            const bottomLeftCorner = ctx.getImageData(posX, imageAtlas.image.height - 2 + posY, 1, 1);
+            const topRightCorner = ctx.getImageData(imgAtlas.image.width - 2 + posX, posY, 1, 1);
+            const bottomRightCorner = ctx.getImageData(imgAtlas.image.width - 2 + posX, imgAtlas.image.height - 2 + posY, 1, 1);
+            const bottomLeftCorner = ctx.getImageData(posX, imgAtlas.image.height - 2 + posY, 1, 1);
 
             refImgPixelColorChecking(topLeftCorner, 255, 0, 0, 255);
             refImgPixelColorChecking(topRightCorner, 0, 255, 0, 255);
@@ -165,13 +176,15 @@ describe("imgRenderer", () => {
         });
 
         it("should be able to draw part of the image", () => {
-            const srcPosX = imageAtlas.image.width - 25;
+            const imgAtlas = imgRendererSystem.imgAtlasManager.get(1);
+
+            const srcPosX = imgAtlas.image.width - 25;
             const srcPosY = 0;
             const srcWidth = 25;
-            const srcHeight = imageAtlas.image.height;
+            const srcHeight = imgAtlas.image.height;
 
             const comp = imgFactory.create(1, true);
-            comp.image = imageAtlas.image;
+            comp.imageId = 1;
             // draw only the last 25 pixel with of the image
             comp.sourcePosition = vec2.fromValues(srcPosX, srcPosY);
             comp.sourceSize = vec2.fromValues(srcWidth, srcHeight);
@@ -179,13 +192,14 @@ describe("imgRenderer", () => {
             setCenterAndDimension(comp);
 
             imgRendererSystem.setParamSource("*", imgFactory);
+            imgRendererSystem.setParamSource("imageAtlasId", imgFactory, "imageId");
             imgRendererSystem.process();
 
             // should have only top right corner and bottom right corner of the image drawn
             const topLeftCorner = ctx.getImageData(0, 0, 1, 1);
-            const topRightCorner = ctx.getImageData(imageAtlas.image.width - 1, 0, 1, 1);
-            const bottomRightCorner = ctx.getImageData(imageAtlas.image.width - 1, imageAtlas.image.height - 1, 1, 1);
-            const bottomLeftCorner = ctx.getImageData(0, imageAtlas.image.height - 1, 1, 1);
+            const topRightCorner = ctx.getImageData(imgAtlas.image.width - 1, 0, 1, 1);
+            const bottomRightCorner = ctx.getImageData(imgAtlas.image.width - 1, imgAtlas.image.height - 1, 1, 1);
+            const bottomLeftCorner = ctx.getImageData(0, imgAtlas.image.height - 1, 1, 1);
 
             refImgPixelColorChecking(topLeftCorner, 0, 255, 0, 255);
             refImgPixelColorChecking(bottomLeftCorner, 0, 0, 255, 255);
@@ -194,11 +208,13 @@ describe("imgRenderer", () => {
             refImgPixelColorChecking(bottomRightCorner, 0, 0, 0, 0);
         });
         it("should be able to draw the image to a given size", () => {
+            const imageAtlas = imgRendererSystem.imgAtlasManager.get(1);
+
             const destWidth = imageAtlas.image.width * 0.5;
             const destHeight = imageAtlas.image.height * 0.5;
 
             const comp = imgFactory.create(1, true);
-            comp.image = imageAtlas.image;
+            comp.imageId = 1;
 
             comp.sourcePosition = vec2.fromValues(0, 0);
             comp.sourceSize = vec2.fromValues(imageAtlas.image.width, imageAtlas.image.height);
@@ -206,6 +222,7 @@ describe("imgRenderer", () => {
             mat4.scale(comp.transformation, comp.transformation, [0.5, 0.5, 1]);
 
             imgRendererSystem.setParamSource("*", imgFactory);
+            imgRendererSystem.setParamSource("imageAtlasId", imgFactory, "imageId");
             imgRendererSystem.process();
 
             const topLeftCorner = ctx.getImageData(0, 0, 1, 1);
@@ -223,8 +240,10 @@ describe("imgRenderer", () => {
             // the imagerander just render the image based on the transformation matrix
             const rotation = 90 * Math.PI / 180;
 
+            const imageAtlas = imgRendererSystem.imgAtlasManager.get(1);
+
             const comp = imgFactory.create(1, true);
-            comp.image = imageAtlas.image;
+            comp.imageId = 1;
 
             comp.sourcePosition = vec2.fromValues(0, 0);
             comp.sourceSize = vec2.fromValues(imageAtlas.image.width, imageAtlas.image.height);
@@ -234,6 +253,7 @@ describe("imgRenderer", () => {
             rotateByCenter(comp, rotation);
 
             imgRendererSystem.setParamSource("*", imgFactory);
+            imgRendererSystem.setParamSource("imageAtlasId", imgFactory, "imageId");
             imgRendererSystem.process();
 
             const topLeftCorner = ctx.getImageData(3, 3, 1, 1);
@@ -256,9 +276,10 @@ describe("imgRenderer", () => {
             // Components :
             // 1st comp : right part of the ImageAtlas rotate by 180 degree, so bleu is up and green is down, drawn at (0, 0)
             // 2nd comp : left corner (red) for the ImageAtlas translated to (100, 100)
+            const imageAtlas = imgRendererSystem.imgAtlasManager.get(1);
 
             const comp1 = imgFactory.create(1, true);
-            comp1.image = imageAtlas.image;
+            comp1.imageId = 1;
             comp1.sourcePosition = vec2.fromValues(imageAtlas.image.width - 25, 0);
             comp1.sourceSize = vec2.fromValues(25, imageAtlas.image.height);
             setCenterAndDimension(comp1);
@@ -267,7 +288,7 @@ describe("imgRenderer", () => {
             rotateByCenter(comp1, radian);
 
             const comp2 = imgFactory.create(2, true);
-            comp2.image = imageAtlas.image;
+            comp2.imageId = 1;
             comp2.sourcePosition = vec2.fromValues(0, 0);
             comp2.sourceSize = vec2.fromValues(25, 25);
 
@@ -276,12 +297,13 @@ describe("imgRenderer", () => {
             mat4.translate(comp2.transformation, comp2.transformation, [100, 100, 0]);
 
             imgRendererSystem.setParamSource("*", imgFactory);
+            imgRendererSystem.setParamSource("imageAtlasId", imgFactory, "imageId");
             imgRendererSystem.process();
 
             const fistComponentTopPixel = ctx.getImageData(2, 2, 1, 1);
             expect(refImgPixelColorChecking(fistComponentTopPixel, 0, 0, 255, 255));
 
-            const fistComponentBottomPixel = ctx.getImageData(2, comp1.image.height - 2, 1, 1);
+            const fistComponentBottomPixel = ctx.getImageData(2, imageAtlas.image.height - 2, 1, 1);
             expect(refImgPixelColorChecking(fistComponentBottomPixel, 0, 255, 0, 255));
 
             const secondComponentPixel = ctx.getImageData(100 + 2, 100 + 2, 1, 1);
@@ -321,11 +343,14 @@ describe("imgRenderer", () => {
             const sortSystem = new SortSystem();
             sortSystem.setParamSource("paramName", imgFactory, "zIndex");
             imgRendererSystem.setParamSource("*", imgFactory);
+            imgRendererSystem.setParamSource("imageAtlasId", imgFactory, "imageId");
+
+            const imageAtlas = imgRendererSystem.imgAtlasManager.get(1);
 
             // draw in increasing order
             // red
             const comp1 = imgFactory.create(1, true);
-            comp1.image = imageAtlas.image;
+            comp1.imageId = 1;
             comp1.sourcePosition = vec2.fromValues(0, 0);
             comp1.sourceSize = vec2.fromValues(25, 25);
             setCenterAndDimension(comp1);
@@ -333,7 +358,7 @@ describe("imgRenderer", () => {
 
             // green
             const comp2 = imgFactory.create(2, true);
-            comp2.image = imageAtlas.image;
+            comp2.imageId = 1;
             comp2.sourcePosition = vec2.fromValues(imageAtlas.image.width - 25, 0);
             comp2.sourceSize = vec2.fromValues(25, 25);
             setCenterAndDimension(comp2);
@@ -342,7 +367,7 @@ describe("imgRenderer", () => {
 
             // blue
             const comp3 = imgFactory.create(3, true);
-            comp3.image = imageAtlas.image;
+            comp3.imageId = 1;
             comp3.sourcePosition = vec2.fromValues(imageAtlas.image.width - 25, imageAtlas.image.height - 25);
             comp3.sourceSize = vec2.fromValues(25, 25);
 
@@ -352,7 +377,7 @@ describe("imgRenderer", () => {
 
             // purple
             const comp4 = imgFactory.create(4, true);
-            comp4.image = imageAtlas.image;
+            comp4.imageId = 1;
             comp4.sourcePosition = vec2.fromValues(0, imageAtlas.image.height - 25);
             comp4.sourceSize = vec2.fromValues(25, 25);
 
@@ -381,10 +406,14 @@ describe("imgRenderer", () => {
             // render a blue image behing in the transparent part of the top image
             // selected pixel should be blue
             const transparentHolder = new ImageAtlas();
+            const transparentImgId = 3;
+            imgRendererSystem.imgAtlasManager.set(transparentImgId, transparentHolder);
+
+            const imageAtlas = imgRendererSystem.imgAtlasManager.get(1);
 
             transparentHolder.loadImg(transparentImgUrl).then((res) => {
                 const comp1 = imgFactory.create(1, true);
-                comp1.image = imageAtlas.image;
+                comp1.imageId = 1;
                 comp1.sourcePosition = vec2.fromValues(imageAtlas.image.width - 25, imageAtlas.image.width - 25);
                 comp1.sourceSize = vec2.fromValues(25, 25);
 
@@ -393,13 +422,14 @@ describe("imgRenderer", () => {
                 // comp1.zIndex = 0;
 
                 const comp2 = imgFactory.create(2, true);
-                comp2.image = transparentHolder.image;
+                comp2.imageId = transparentImgId;
                 comp2.sourcePosition = vec2.fromValues(0, 0);
                 comp2.sourceSize = vec2.fromValues(transparentHolder.image.width, transparentHolder.image.height);
                 setCenterAndDimension(comp2);
                 // comp2.zIndex = 1;
 
                 imgRendererSystem.setParamSource("*", imgFactory);
+                imgRendererSystem.setParamSource("imageAtlasId", imgFactory, "imageId");
                 imgRendererSystem.process();
 
                 // check that non transparent part is renderer
@@ -418,10 +448,14 @@ describe("imgRenderer", () => {
         });
         it("should be able to renderer translucid image", (done) => {
             const translucidHolder = new ImageAtlas();
+            const imgId = 2;
+            imgRendererSystem.imgAtlasManager.set(imgId, translucidHolder);
+
+            const imageAtlas = imgRendererSystem.imgAtlasManager.get(1);
 
             translucidHolder.loadImg(translucidImgUrl).then((res) => {
                 const comp1 = imgFactory.create(1, true);
-                comp1.image = imageAtlas.image;
+                comp1.imageId = 1;
                 comp1.sourcePosition = vec2.fromValues(imageAtlas.image.width - 25, imageAtlas.image.width - 25);
                 comp1.sourceSize = vec2.fromValues(25, 25);
                 setCenterAndDimension(comp1);
@@ -429,13 +463,14 @@ describe("imgRenderer", () => {
                 // comp1.zIndex = 0;
 
                 const comp2 = imgFactory.create(2, true);
-                comp2.image = translucidHolder.image;
+                comp2.imageId = imgId;
                 comp2.sourcePosition = vec2.fromValues(0, 0);
                 comp2.sourceSize = vec2.fromValues(translucidHolder.image.width, translucidHolder.image.height);
                 setCenterAndDimension(comp2);
                 // comp2.zIndex = 1;
 
                 imgRendererSystem.setParamSource("*", imgFactory);
+                imgRendererSystem.setParamSource("imageAtlasId", imgFactory, "imageId");
                 imgRendererSystem.process();
 
                 // check that non transparent part is renderer
