@@ -14,6 +14,7 @@ describe("imgRenderer", () => {
     const transparentImgUrl = "base/test/img/transparent.png";
     const translucidImgUrl = "base/test/img/translucidRef.png";
     const descriptUrl = "base/test/img/running.json";
+    const ref2 = "base/test/img/ref2.png";
 
     const canvasId = "canvas";
 
@@ -102,13 +103,13 @@ describe("imgRenderer", () => {
         });
         describe("image component", () => {
             it("should contain a reference to the image, the source position, source size and a transformation matrix", () => {
-                    const spComponent = new ImageComponent(1);
-                    expect(spComponent.imageId).to.equal(1);
-                    expect(spComponent.sourcePosition[0]).to.equal(0);
-                    expect(spComponent.sourcePosition[1]).to.equal(0);
-                    expect(spComponent.sourceSize[0]).to.equal(0);
-                    expect(spComponent.sourceSize[1]).to.equal(0);
-                    expect(spComponent.transformation[15]).to.not.equal(undefined);
+                const spComponent = new ImageComponent(1);
+                expect(spComponent.imageId).to.equal(1);
+                expect(spComponent.sourcePosition[0]).to.equal(0);
+                expect(spComponent.sourcePosition[1]).to.equal(0);
+                expect(spComponent.sourceSize[0]).to.equal(0);
+                expect(spComponent.sourceSize[1]).to.equal(0);
+                expect(spComponent.transformation[15]).to.not.equal(undefined);
 
                 // imageAtlas.loadImg(imgUrl).then((res) => {
                 //     test(imageAtlas);
@@ -487,6 +488,35 @@ describe("imgRenderer", () => {
             }).catch((res) => {
                 done(res);
             });
+        });
+        it("should be able to render image from its center", (done) => {
+
+            imgRendererSystem.imgAtlasManager.set(2, new ImageAtlas());
+            const imageAtlas = imgRendererSystem.imgAtlasManager.get(2);
+            imageAtlas.loadImg(ref2).then((res) => {
+                const comp1 = imgFactory.create(1, true);
+                comp1.imageId = 2;
+                comp1.sourcePosition = vec2.fromValues(256, 256);
+                comp1.sourceSize = vec2.fromValues(256, 256);
+                comp1.center = vec3.fromValues(comp1.sourceSize[0] / 2, comp1.sourceSize[1] / 2, 0.5);
+                setCenterAndDimension(comp1);
+
+                imgRendererSystem.renderFromCenter = true;
+
+                mat4.translate(comp1.transformation, comp1.transformation, [128, 128, 1]);
+
+                imgRendererSystem.setParamSource("*", imgFactory);
+                imgRendererSystem.setParamSource("imageAtlasId", imgFactory, "imageId");
+                imgRendererSystem.process();
+
+                const fistComponentTopPixel = ctx.getImageData(12, 12, 1, 1);
+                // orangish
+                expect(refImgPixelColorChecking(fistComponentTopPixel, 203, 122, 0, 255));
+                done();
+            }).catch((err) => {
+                done(err);
+            });
+
         });
     });
     // Checking that the pixel is of the given color

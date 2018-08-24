@@ -21,6 +21,7 @@ interface IImageRendererSystemParams {
 }
 
 class ImageRendererSystem extends System<IImageRendererSystemParams> {
+    public renderFromCenter: boolean = false;
     protected _defaultParameter: IImageRendererSystemParams = {
         center: vec3.create(),
         dimension: vec3.create(),
@@ -56,8 +57,8 @@ class ImageRendererSystem extends System<IImageRendererSystemParams> {
             params.sourcePosition[this._k.sourcePosition][1],
             params.sourceSize[this._k.sourceSize][0],
             params.sourceSize[this._k.sourceSize][1],
-            0,
-            0,
+            this.renderFromCenter ? 0 - params.center[this._k.center][0] : 0,
+            this.renderFromCenter ? 0 - params.center[this._k.center][1] : 0,
             params.sourceSize[this._k.sourceSize][0],
             params.sourceSize[this._k.sourceSize][1]);
     }
