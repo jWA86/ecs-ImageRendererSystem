@@ -281,6 +281,7 @@ var ImageRendererSystem = /** @class */ (function (_super) {
         var _this = _super.call(this) || this;
         _this.context = context;
         _this.imgAtlasManager = imgAtlasManager;
+        _this.renderFromCenter = false;
         _this._defaultParameter = {
             center: gl_matrix_1.vec3.create(),
             dimension: gl_matrix_1.vec3.create(),
@@ -314,7 +315,7 @@ var ImageRendererSystem = /** @class */ (function (_super) {
             return;
         }
         var image = atlas.image;
-        this.context.drawImage(image, params.sourcePosition[this._k.sourcePosition][0], params.sourcePosition[this._k.sourcePosition][1], params.sourceSize[this._k.sourceSize][0], params.sourceSize[this._k.sourceSize][1], 0, 0, params.sourceSize[this._k.sourceSize][0], params.sourceSize[this._k.sourceSize][1]);
+        this.context.drawImage(image, params.sourcePosition[this._k.sourcePosition][0], params.sourcePosition[this._k.sourcePosition][1], params.sourceSize[this._k.sourceSize][0], params.sourceSize[this._k.sourceSize][1], this.renderFromCenter ? 0 - params.center[this._k.center][0] : 0, this.renderFromCenter ? 0 - params.center[this._k.center][1] : 0, params.sourceSize[this._k.sourceSize][0], params.sourceSize[this._k.sourceSize][1]);
     };
     return ImageRendererSystem;
 }(ecs_framework_1.System));

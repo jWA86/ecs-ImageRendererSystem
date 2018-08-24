@@ -19,6 +19,7 @@ interface IImageRendererSystemParams {
 declare class ImageRendererSystem extends System<IImageRendererSystemParams> {
     context: CanvasRenderingContext2D;
     imgAtlasManager: FastIterationMap<number, ImageAtlas>;
+    renderFromCenter: boolean;
     protected _defaultParameter: IImageRendererSystemParams;
     constructor(context: CanvasRenderingContext2D, imgAtlasManager: FastIterationMap<number, ImageAtlas>);
     process(...args: any[]): void;
