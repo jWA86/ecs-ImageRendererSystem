@@ -498,20 +498,18 @@ describe("imgRenderer", () => {
                 comp1.imageId = 2;
                 comp1.sourcePosition = vec2.fromValues(256, 256);
                 comp1.sourceSize = vec2.fromValues(256, 256);
-                comp1.center = vec3.fromValues(comp1.sourceSize[0] / 2, comp1.sourceSize[1] / 2, 0.5);
                 setCenterAndDimension(comp1);
+                comp1.center = vec3.fromValues(0, 0, 0);
 
                 imgRendererSystem.renderFromCenter = true;
-
-                mat4.translate(comp1.transformation, comp1.transformation, [128, 128, 1]);
 
                 imgRendererSystem.setParamSource("*", imgFactory);
                 imgRendererSystem.setParamSource("imageAtlasId", imgFactory, "imageId");
                 imgRendererSystem.process();
 
-                const fistComponentTopPixel = ctx.getImageData(12, 12, 1, 1);
+                const fistComponentTopPixel = ctx.getImageData(200, 200, 1, 1);
                 // orangish
-                expect(refImgPixelColorChecking(fistComponentTopPixel, 203, 122, 0, 255));
+                expect(refImgPixelColorChecking(fistComponentTopPixel, 0, 0, 0, 0));
                 done();
             }).catch((err) => {
                 done(err);

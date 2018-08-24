@@ -57,8 +57,8 @@ class ImageRendererSystem extends System<IImageRendererSystemParams> {
             params.sourcePosition[this._k.sourcePosition][1],
             params.sourceSize[this._k.sourceSize][0],
             params.sourceSize[this._k.sourceSize][1],
-            this.renderFromCenter ? 0 - params.center[this._k.center][0] : 0,
-            this.renderFromCenter ? 0 - params.center[this._k.center][1] : 0,
+            this.renderFromCenter ? 0 - params.dimension[this._k.dimension][0] / 2 : 0,
+            this.renderFromCenter ? 0 - params.dimension[this._k.dimension][1] / 2 : 0,
             params.sourceSize[this._k.sourceSize][0],
             params.sourceSize[this._k.sourceSize][1]);
     }
