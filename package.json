@@ -1,6 +1,6 @@
 {
   "name": "ecs-imagerenderersystem",
-  "version": "5.1.0-alpha",
+  "version": "5.1.1-alpha",
   "description": "simple system for rendering image for the ecs framework",
   "main": "./dist/index.js",
   "types": "./dist/src/entry.d.ts",

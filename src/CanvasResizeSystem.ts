@@ -1,11 +1,9 @@
-import { System } from "ecs-framework";
+import { interfaces } from "ecs-framework";
 
 /** Resize the canvas when the client size change */
-export class CanvasResizeSystem extends System<null> {
+export class CanvasResizeSystem implements interfaces.ISystem<null> {
     public active: boolean = true;
-    constructor(public canvas: HTMLCanvasElement) {
-        super(null);
-    }
+    constructor(public canvas: HTMLCanvasElement) {}
     public process() {
         const canvas = this.canvas;
 
@@ -19,5 +17,10 @@ export class CanvasResizeSystem extends System<null> {
             canvas.height = displayHeight;
         }
     }
-    public execute() {}
+    public execute() {
+        throw Error("method not use by this system");
+    }
+    public setParamSource() {
+        throw Error("method not use by this system");
+    }
 }
