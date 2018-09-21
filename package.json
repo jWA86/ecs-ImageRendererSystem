@@ -1,6 +1,6 @@
 {
   "name": "ecs-imagerenderersystem",
-  "version": "4.1.1-alpha",
+  "version": "5.0.0-alpha",
   "description": "simple system for rendering image for the ecs framework",
   "main": "./dist/index.js",
   "types": "./dist/src/entry.d.ts",
@@ -21,7 +21,7 @@
   "author": "jWA86",
   "license": "MIT",
   "devDependencies": {
-    "@types/chai": "^4.0.10",
+    "@types/chai": "^5.0.0-alpha",
     "@types/gl-matrix": "^2.4.0",
     "@types/mocha": "^2.2.45",
     "chai": "^4.1.2",
