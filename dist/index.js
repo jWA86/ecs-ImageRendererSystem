@@ -1,13 +1,13 @@
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
-		module.exports = factory(require("ecs-framework"), require("gl-matrix"));
+		module.exports = factory(require("gl-matrix"), require("ecs-framework"));
 	else if(typeof define === 'function' && define.amd)
-		define(["ecs-framework", "gl-matrix"], factory);
+		define(["gl-matrix", "ecs-framework"], factory);
 	else if(typeof exports === 'object')
-		exports["ecs-imagerenderersystem"] = factory(require("ecs-framework"), require("gl-matrix"));
+		exports["ecs-imagerenderersystem"] = factory(require("gl-matrix"), require("ecs-framework"));
 	else
-		root["ecs-imagerenderersystem"] = factory(root["ecs-framework"], root["gl-matrix"]);
-})(this, function(__WEBPACK_EXTERNAL_MODULE_0__, __WEBPACK_EXTERNAL_MODULE_1__) {
+		root["ecs-imagerenderersystem"] = factory(root["gl-matrix"], root["ecs-framework"]);
+})(this, function(__WEBPACK_EXTERNAL_MODULE_0__, __WEBPACK_EXTERNAL_MODULE_8__) {
 return /******/ (function(modules) { // webpackBootstrap
 /******/ 	// The module cache
 /******/ 	var installedModules = {};
@@ -70,7 +70,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 2);
+/******/ 	return __webpack_require__(__webpack_require__.s = 1);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -81,38 +81,32 @@ module.exports = __WEBPACK_EXTERNAL_MODULE_0__;
 
 /***/ }),
 /* 1 */
-/***/ (function(module, exports) {
+/***/ (function(module, exports, __webpack_require__) {
 
-module.exports = __WEBPACK_EXTERNAL_MODULE_1__;
+module.exports = __webpack_require__(2);
+
 
 /***/ }),
 /* 2 */
 /***/ (function(module, exports, __webpack_require__) {
 
-module.exports = __webpack_require__(3);
-
-
-/***/ }),
-/* 3 */
-/***/ (function(module, exports, __webpack_require__) {
-
 "use strict";
 
 Object.defineProperty(exports, "__esModule", { value: true });
-var asset_1 = __webpack_require__(4);
+var asset_1 = __webpack_require__(3);
 exports.ImageAtlas = asset_1.ImageAtlas;
-var CanvasResizeSystem_1 = __webpack_require__(5);
+var CanvasResizeSystem_1 = __webpack_require__(4);
 exports.CanvasResizeSystem = CanvasResizeSystem_1.CanvasResizeSystem;
-var ClearCanvasSystem_1 = __webpack_require__(6);
+var ClearCanvasSystem_1 = __webpack_require__(5);
 exports.ClearCanvasSystem = ClearCanvasSystem_1.ClearCanvasSystem;
-var ImageComponent_1 = __webpack_require__(7);
+var ImageComponent_1 = __webpack_require__(6);
 exports.ImageComponent = ImageComponent_1.ImageComponent;
-var ImageRendererSystem_1 = __webpack_require__(8);
+var ImageRendererSystem_1 = __webpack_require__(7);
 exports.ImageRendererSystem = ImageRendererSystem_1.ImageRendererSystem;
 
 
 /***/ }),
-/* 4 */
+/* 3 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -145,31 +139,17 @@ exports.ImageAtlas = ImageAtlas;
 
 
 /***/ }),
-/* 5 */
+/* 4 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
-var __extends = (this && this.__extends) || (function () {
-    var extendStatics = Object.setPrototypeOf ||
-        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
-    return function (d, b) {
-        extendStatics(d, b);
-        function __() { this.constructor = d; }
-        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-    };
-})();
 Object.defineProperty(exports, "__esModule", { value: true });
-var ecs_framework_1 = __webpack_require__(0);
 /** Resize the canvas when the client size change */
-var CanvasResizeSystem = /** @class */ (function (_super) {
-    __extends(CanvasResizeSystem, _super);
+var CanvasResizeSystem = /** @class */ (function () {
     function CanvasResizeSystem(canvas) {
-        var _this = _super.call(this, null) || this;
-        _this.canvas = canvas;
-        _this.active = true;
-        return _this;
+        this.canvas = canvas;
+        this.active = true;
     }
     CanvasResizeSystem.prototype.process = function () {
         var canvas = this.canvas;
@@ -181,10 +161,43 @@ var CanvasResizeSystem = /** @class */ (function (_super) {
             canvas.height = displayHeight;
         }
     };
-    CanvasResizeSystem.prototype.execute = function () { };
+    CanvasResizeSystem.prototype.execute = function () {
+        throw Error("method not use by this system");
+    };
+    CanvasResizeSystem.prototype.setParamSource = function () {
+        throw Error("method not use by this system");
+    };
     return CanvasResizeSystem;
-}(ecs_framework_1.System));
+}());
 exports.CanvasResizeSystem = CanvasResizeSystem;
+
+
+/***/ }),
+/* 5 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", { value: true });
+var ClearCanvasSystem = /** @class */ (function () {
+    function ClearCanvasSystem(context, canvas) {
+        this.context = context;
+        this.canvas = canvas;
+        this.active = true;
+        this._defaultParameter = {};
+    }
+    ClearCanvasSystem.prototype.process = function () {
+        this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    };
+    ClearCanvasSystem.prototype.execute = function () {
+        throw Error("method not use by this system");
+    };
+    ClearCanvasSystem.prototype.setParamSource = function () {
+        throw Error("method not use by this system");
+    };
+    return ClearCanvasSystem;
+}());
+exports.ClearCanvasSystem = ClearCanvasSystem;
 
 
 /***/ }),
@@ -193,45 +206,8 @@ exports.CanvasResizeSystem = CanvasResizeSystem;
 
 "use strict";
 
-var __extends = (this && this.__extends) || (function () {
-    var extendStatics = Object.setPrototypeOf ||
-        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
-    return function (d, b) {
-        extendStatics(d, b);
-        function __() { this.constructor = d; }
-        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-    };
-})();
 Object.defineProperty(exports, "__esModule", { value: true });
-var ecs_framework_1 = __webpack_require__(0);
-var ClearCanvasSystem = /** @class */ (function (_super) {
-    __extends(ClearCanvasSystem, _super);
-    function ClearCanvasSystem(context, canvas) {
-        var _this = _super.call(this, null) || this;
-        _this.context = context;
-        _this.canvas = canvas;
-        _this.active = true;
-        _this._defaultParameter = {};
-        return _this;
-    }
-    ClearCanvasSystem.prototype.process = function () {
-        this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
-    };
-    ClearCanvasSystem.prototype.execute = function () { };
-    return ClearCanvasSystem;
-}(ecs_framework_1.System));
-exports.ClearCanvasSystem = ClearCanvasSystem;
-
-
-/***/ }),
-/* 7 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", { value: true });
-var gl_matrix_1 = __webpack_require__(1);
+var gl_matrix_1 = __webpack_require__(0);
 var ImageComponent = /** @class */ (function () {
     function ImageComponent(imageId, dimension, sourcePosition, sourceSize, center, transformation, zIndex) {
         if (dimension === void 0) { dimension = gl_matrix_1.vec3.create(); }
@@ -256,7 +232,7 @@ exports.ImageComponent = ImageComponent;
 
 
 /***/ }),
-/* 8 */
+/* 7 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -272,8 +248,8 @@ var __extends = (this && this.__extends) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-var ecs_framework_1 = __webpack_require__(0);
-var gl_matrix_1 = __webpack_require__(1);
+var ecs_framework_1 = __webpack_require__(8);
+var gl_matrix_1 = __webpack_require__(0);
 var ImageRendererSystem = /** @class */ (function (_super) {
     __extends(ImageRendererSystem, _super);
     function ImageRendererSystem(context, imgAtlasManager) {
@@ -321,6 +297,12 @@ var ImageRendererSystem = /** @class */ (function (_super) {
 }(ecs_framework_1.System));
 exports.ImageRendererSystem = ImageRendererSystem;
 
+
+/***/ }),
+/* 8 */
+/***/ (function(module, exports) {
+
+module.exports = __WEBPACK_EXTERNAL_MODULE_8__;
 
 /***/ })
 /******/ ]);
