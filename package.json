@@ -25,7 +25,7 @@
     "@types/gl-matrix": "^2.4.0",
     "@types/mocha": "^2.2.45",
     "chai": "^4.1.2",
-    "ecs-sortsystem": "^3.0.1-alpha",
+    "ecs-sortsystem": "^3.1.0-alpha",
     "es6-shim": "^0.35.3",
     "karma": "^1.7.1",
     "karma-chrome-launcher": "^2.2.0",

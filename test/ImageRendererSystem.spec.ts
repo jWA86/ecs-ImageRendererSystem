@@ -25,18 +25,6 @@ describe("imgRenderer", () => {
     let imageManager: FastIterationMap<number, ImageAtlas>;
     // let imageAtlas = new ImageAtlas();
 
-    const defaultParameter: IImageRendererSystemParams = {
-        active: true,
-        center: vec3.create(),
-        dimension: vec3.create(),
-        entityId: 0,
-        imageAtlasId: 0,
-        sourcePosition: vec2.create(),
-        sourceSize: vec2.create(),
-        transformation: mat4.create(),
-        zIndex: 1,
-    };
-
     beforeEach(() => {
         document.body.innerHTML = "";
         mockHtml = '<canvas id="canvas" width="800" height="600"></canvas>';
@@ -148,7 +136,7 @@ describe("imgRenderer", () => {
 
             imgFactory = new ComponentFactory<ImageComponent>(5, new ImageComponent(1));
 
-            imgRendererSystem = new ImageRendererSystem(defaultParameter, ctx, imageManager);
+            imgRendererSystem = new ImageRendererSystem(ctx, imageManager);
 
             const imgAtlas = new ImageAtlas();
             imageManager.set(1, imgAtlas);
@@ -351,7 +339,7 @@ describe("imgRenderer", () => {
             expect(imgFactory.values[3].zIndex).to.equal(0);
 
             // should give [3, 2, 1, 0]
-            const sortSystem = new SortSystem({ paramName: "", entityId: 0, active: true });
+            const sortSystem = new SortSystem();
             sortSystem.setParamSource("paramName", imgFactory, "zIndex");
             sortSystem.validateParametersSources();
             sortSystem.process();
@@ -363,7 +351,7 @@ describe("imgRenderer", () => {
         });
         it("should be able to draw images on top of each other based on the z index", () => {
             const layerFactory = new ComponentFactory<Layer>(5, new Layer(0, true, 0));
-            const sortSystem = new SortSystem({ paramName: "", entityId: 0, active: true });
+            const sortSystem = new SortSystem();
             sortSystem.setParamSource("paramName", imgFactory, "zIndex");
             sortSystem.validateParametersSources();
 

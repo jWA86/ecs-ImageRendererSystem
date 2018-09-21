@@ -22,7 +22,19 @@ interface IImageRendererSystemParams extends interfaces.IComponent {
 
 class ImageRendererSystem extends System<IImageRendererSystemParams> {
     public renderFromCenter: boolean = false;
-    constructor(params: IImageRendererSystemParams, public context: CanvasRenderingContext2D, public imgAtlasManager: FastIterationMap<number, ImageAtlas>) { super(params); }
+    constructor(public context: CanvasRenderingContext2D, public imgAtlasManager: FastIterationMap<number, ImageAtlas>) {
+        super({
+            active: true,
+            center: vec3.create(),
+            dimension: vec3.create(),
+            entityId: 0,
+            imageAtlasId: 0,
+            sourcePosition: vec2.create(),
+            sourceSize: vec2.create(),
+            transformation: mat4.create(),
+            zIndex: 1,
+        });
+    }
     public process(...args: any[]) {
         super.process(...args);
         this.context.setTransform(1, 0, 0, 1, 0, 0);
