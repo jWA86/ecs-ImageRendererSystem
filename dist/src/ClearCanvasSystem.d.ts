@@ -1,5 +1,5 @@
 import { System } from "ecs-framework";
-export declare class ClearCanvasSystem extends System<{}> {
+export declare class ClearCanvasSystem extends System<null> {
     context: CanvasRenderingContext2D;
     canvas: HTMLCanvasElement;
     active: boolean;

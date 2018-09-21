@@ -1,10 +1,10 @@
 /// <reference types="gl-matrix" />
-import { System } from "ecs-framework";
+import { interfaces, System } from "ecs-framework";
 import { FastIterationMap } from "FastIterationMap";
 import { mat4, vec2, vec3 } from "gl-matrix";
 import { ImageAtlas } from "./asset";
 export { IImageRendererSystemParams, ImageRendererSystem };
-interface IImageRendererSystemParams {
+interface IImageRendererSystemParams extends interfaces.IComponent {
     imageAtlasId: number;
     center: vec3;
     /** Dimension from the center */
@@ -20,8 +20,7 @@ declare class ImageRendererSystem extends System<IImageRendererSystemParams> {
     context: CanvasRenderingContext2D;
     imgAtlasManager: FastIterationMap<number, ImageAtlas>;
     renderFromCenter: boolean;
-    protected _defaultParameter: IImageRendererSystemParams;
-    constructor(context: CanvasRenderingContext2D, imgAtlasManager: FastIterationMap<number, ImageAtlas>);
+    constructor(params: IImageRendererSystemParams, context: CanvasRenderingContext2D, imgAtlasManager: FastIterationMap<number, ImageAtlas>);
     process(...args: any[]): void;
     execute(params: IImageRendererSystemParams): void;
 }

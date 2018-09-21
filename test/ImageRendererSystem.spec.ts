@@ -6,7 +6,7 @@ import { mat4, vec2, vec3 } from "gl-matrix";
 import "mocha";
 import { ImageAtlas } from "../src/asset";
 import { ImageComponent } from "../src/ImageComponent";
-import { ImageRendererSystem } from "../src/ImageRendererSystem";
+import { IImageRendererSystemParams, ImageRendererSystem } from "../src/ImageRendererSystem";
 
 describe("imgRenderer", () => {
     const imgUrl = "base/test/img/ref.png";
@@ -25,7 +25,17 @@ describe("imgRenderer", () => {
     let imageManager: FastIterationMap<number, ImageAtlas>;
     // let imageAtlas = new ImageAtlas();
 
-    const defaultImageComponent: ImageComponent = new ImageComponent(1);
+    const defaultParameter: IImageRendererSystemParams = {
+        active: true,
+        center: vec3.create(),
+        dimension: vec3.create(),
+        entityId: 0,
+        imageAtlasId: 0,
+        sourcePosition: vec2.create(),
+        sourceSize: vec2.create(),
+        transformation: mat4.create(),
+        zIndex: 1,
+    };
 
     beforeEach(() => {
         document.body.innerHTML = "";
@@ -124,9 +134,9 @@ describe("imgRenderer", () => {
         let canvas: HTMLCanvasElement = document.getElementById(canvasId) as HTMLCanvasElement;
         let ctx: CanvasRenderingContext2D = canvas.getContext("2d");
 
-        let imgFactory = new ComponentFactory<ImageComponent>(5, defaultImageComponent);
+        let imgFactory: ComponentFactory<ImageComponent>;
 
-        let imgRendererSystem = new ImageRendererSystem(ctx, imageManager);
+        let imgRendererSystem: ImageRendererSystem;
 
         class Layer implements interfaces.IComponent {
             constructor(public entityId: number, public active: boolean, public zIndex: number) { }
@@ -136,9 +146,10 @@ describe("imgRenderer", () => {
             canvas = document.getElementById(canvasId) as HTMLCanvasElement;
             ctx = canvas.getContext("2d");
 
-            imgFactory = new ComponentFactory<ImageComponent>(5, defaultImageComponent);
+            imgFactory = new ComponentFactory<ImageComponent>(5, new ImageComponent(1));
 
-            imgRendererSystem = new ImageRendererSystem(ctx, imageManager);
+            imgRendererSystem = new ImageRendererSystem(defaultParameter, ctx, imageManager);
+
             const imgAtlas = new ImageAtlas();
             imageManager.set(1, imgAtlas);
             imgAtlas.loadImg(imgUrl).then((res) => {
@@ -162,6 +173,8 @@ describe("imgRenderer", () => {
 
             imgRendererSystem.setParamSource("*", imgFactory);
             imgRendererSystem.setParamSource("imageAtlasId", imgFactory, "imageId");
+            imgRendererSystem.validateParametersSources();
+
             imgRendererSystem.process();
 
             // corner of the image should start at (poxX, posY)
@@ -194,6 +207,8 @@ describe("imgRenderer", () => {
 
             imgRendererSystem.setParamSource("*", imgFactory);
             imgRendererSystem.setParamSource("imageAtlasId", imgFactory, "imageId");
+            imgRendererSystem.validateParametersSources();
+
             imgRendererSystem.process();
 
             // should have only top right corner and bottom right corner of the image drawn
@@ -224,6 +239,8 @@ describe("imgRenderer", () => {
 
             imgRendererSystem.setParamSource("*", imgFactory);
             imgRendererSystem.setParamSource("imageAtlasId", imgFactory, "imageId");
+            imgRendererSystem.validateParametersSources();
+
             imgRendererSystem.process();
 
             const topLeftCorner = ctx.getImageData(0, 0, 1, 1);
@@ -255,6 +272,8 @@ describe("imgRenderer", () => {
 
             imgRendererSystem.setParamSource("*", imgFactory);
             imgRendererSystem.setParamSource("imageAtlasId", imgFactory, "imageId");
+            imgRendererSystem.validateParametersSources();
+
             imgRendererSystem.process();
 
             const topLeftCorner = ctx.getImageData(3, 3, 1, 1);
@@ -299,6 +318,8 @@ describe("imgRenderer", () => {
 
             imgRendererSystem.setParamSource("*", imgFactory);
             imgRendererSystem.setParamSource("imageAtlasId", imgFactory, "imageId");
+            imgRendererSystem.validateParametersSources();
+
             imgRendererSystem.process();
 
             const fistComponentTopPixel = ctx.getImageData(2, 2, 1, 1);
@@ -330,8 +351,9 @@ describe("imgRenderer", () => {
             expect(imgFactory.values[3].zIndex).to.equal(0);
 
             // should give [3, 2, 1, 0]
-            const sortSystem = new SortSystem();
+            const sortSystem = new SortSystem({ paramName: "", entityId: 0, active: true });
             sortSystem.setParamSource("paramName", imgFactory, "zIndex");
+            sortSystem.validateParametersSources();
             sortSystem.process();
 
             expect(imgFactory.values[0].zIndex).to.equal(0);
@@ -341,10 +363,13 @@ describe("imgRenderer", () => {
         });
         it("should be able to draw images on top of each other based on the z index", () => {
             const layerFactory = new ComponentFactory<Layer>(5, new Layer(0, true, 0));
-            const sortSystem = new SortSystem();
+            const sortSystem = new SortSystem({ paramName: "", entityId: 0, active: true });
             sortSystem.setParamSource("paramName", imgFactory, "zIndex");
+            sortSystem.validateParametersSources();
+
             imgRendererSystem.setParamSource("*", imgFactory);
             imgRendererSystem.setParamSource("imageAtlasId", imgFactory, "imageId");
+            imgRendererSystem.validateParametersSources();
 
             const imageAtlas = imgRendererSystem.imgAtlasManager.get(1);
 

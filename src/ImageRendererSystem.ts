@@ -1,11 +1,11 @@
-import { System } from "ecs-framework";
+import { interfaces, System } from "ecs-framework";
 import { FastIterationMap } from "FastIterationMap";
 import { mat4, vec2, vec3 } from "gl-matrix";
 import { ImageAtlas } from "./asset";
 
 export { IImageRendererSystemParams, ImageRendererSystem };
 
-interface IImageRendererSystemParams {
+interface IImageRendererSystemParams extends interfaces.IComponent {
     // image: HTMLImageElement; // replace by an index to pool of asset ?
     imageAtlasId: number;
     center: vec3;
@@ -22,45 +22,35 @@ interface IImageRendererSystemParams {
 
 class ImageRendererSystem extends System<IImageRendererSystemParams> {
     public renderFromCenter: boolean = false;
-    protected _defaultParameter: IImageRendererSystemParams = {
-        center: vec3.create(),
-        dimension: vec3.create(),
-        imageAtlasId: 0,
-        sourcePosition: vec2.create(),
-        sourceSize: vec2.create(),
-        transformation: mat4.create(),
-        zIndex: 1,
-
-    };
-    constructor(public context: CanvasRenderingContext2D, public imgAtlasManager: FastIterationMap<number, ImageAtlas>) { super(); }
+    constructor(params: IImageRendererSystemParams, public context: CanvasRenderingContext2D, public imgAtlasManager: FastIterationMap<number, ImageAtlas>) { super(params); }
     public process(...args: any[]) {
         super.process(...args);
         this.context.setTransform(1, 0, 0, 1, 0, 0);
     }
-    public execute(params: IImageRendererSystemParams) {
+    public execute(params: IImageRendererSystemParams): void {
         // // a	m11 : glM : m00 [0]
         // // b	m12 : glM : m01 [1]
         // // c	m21 : glM : m10 [4]
         // // d	m22 : glM : m11 [5]
         // // e	m41 : glM : m30 [12]
         // // f	m42 : glM : m31 [13]
-        const t = params.transformation[this._k.transformation];
+        const t = params.transformation;
         this.context.setTransform(t[0], t[1], t[4], t[5], t[12], t[13]);
 
-        const atlas = this.imgAtlasManager.get(params.imageAtlasId[this._k.imageAtlasId]);
+        const atlas = this.imgAtlasManager.get(params.imageAtlasId);
         if (atlas === undefined) {
             return;
         }
         const image = atlas.image;
         this.context.drawImage(image,
-            params.sourcePosition[this._k.sourcePosition][0],
-            params.sourcePosition[this._k.sourcePosition][1],
-            params.sourceSize[this._k.sourceSize][0],
-            params.sourceSize[this._k.sourceSize][1],
-            this.renderFromCenter ? 0 - params.dimension[this._k.dimension][0] / 2 : 0,
-            this.renderFromCenter ? 0 - params.dimension[this._k.dimension][1] / 2 : 0,
-            params.sourceSize[this._k.sourceSize][0],
-            params.sourceSize[this._k.sourceSize][1]);
+            params.sourcePosition[0],
+            params.sourcePosition[1],
+            params.sourceSize[0],
+            params.sourceSize[1],
+            this.renderFromCenter ? 0 - params.dimension[0] / 2 : 0,
+            this.renderFromCenter ? 0 - params.dimension[1] / 2 : 0,
+            params.sourceSize[0],
+            params.sourceSize[1]);
     }
 
 }

@@ -1,11 +1,11 @@
 import { System } from "ecs-framework";
 
 /** Resize the canvas when the client size change */
-export class CanvasResizeSystem extends System<{}> {
+export class CanvasResizeSystem extends System<null> {
     public active: boolean = true;
     protected _defaultParameter = {};
     constructor(public canvas: HTMLCanvasElement) {
-        super();
+        super(null);
     }
     public process() {
         const canvas = this.canvas;
