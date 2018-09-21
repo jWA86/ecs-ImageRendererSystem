@@ -3,7 +3,6 @@ import { System } from "ecs-framework";
 export declare class CanvasResizeSystem extends System<null> {
     canvas: HTMLCanvasElement;
     active: boolean;
-    protected _defaultParameter: {};
     constructor(canvas: HTMLCanvasElement);
     process(): void;
     execute(): void;

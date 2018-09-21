@@ -20,7 +20,7 @@ declare class ImageRendererSystem extends System<IImageRendererSystemParams> {
     context: CanvasRenderingContext2D;
     imgAtlasManager: FastIterationMap<number, ImageAtlas>;
     renderFromCenter: boolean;
-    constructor(params: IImageRendererSystemParams, context: CanvasRenderingContext2D, imgAtlasManager: FastIterationMap<number, ImageAtlas>);
+    constructor(context: CanvasRenderingContext2D, imgAtlasManager: FastIterationMap<number, ImageAtlas>);
     process(...args: any[]): void;
     execute(params: IImageRendererSystemParams): void;
 }
