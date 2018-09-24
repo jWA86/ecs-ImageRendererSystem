@@ -39,7 +39,7 @@
     "typescript": "^2.6.2"
   },
   "dependencies": {
-    "ecs-framework": "^12.4.4-pre-alpha",
+    "ecs-framework": "^12.4.5-pre-alpha",
     "gl-matrix": "^2.4.0"
   }
 }
